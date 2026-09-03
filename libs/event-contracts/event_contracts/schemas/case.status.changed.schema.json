@@ -1,0 +1,206 @@
+{
+  "$defs": {
+    "AuditDecisionEnum": {
+      "description": "Auditor decision actions.",
+      "enum": [
+        "UPHOLD",
+        "REVERSE",
+        "REQUEST_INFO"
+      ],
+      "title": "AuditDecisionEnum",
+      "type": "string"
+    },
+    "CaseStatusEnum": {
+      "description": "Lifecycle states of an audit case.",
+      "enum": [
+        "NEW",
+        "ENRICHING",
+        "READY_FOR_REVIEW",
+        "DOCS_REQUESTED",
+        "DECISION_RECORDED",
+        "DISPUTED",
+        "UNDER_APPEAL_REVIEW",
+        "APPEAL_SENT",
+        "CLOSED"
+      ],
+      "title": "CaseStatusEnum",
+      "type": "string"
+    },
+    "DecisionSummary": {
+      "description": "Summary of auditor decision and legal/regulatory rationale.",
+      "properties": {
+        "decision": {
+          "$ref": "#/$defs/AuditDecisionEnum",
+          "description": "Action taken: UPHOLD, REVERSE, or REQUEST_INFO"
+        },
+        "rationale": {
+          "description": "Auditor's written explanation",
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "regulatory_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regulatory policy citation (e.g. CMS NCCI Policy Manual)",
+          "title": "Regulatory Basis"
+        }
+      },
+      "required": [
+        "decision",
+        "rationale"
+      ],
+      "title": "DecisionSummary",
+      "type": "object"
+    },
+    "SlaTypeEnum": {
+      "description": "Type of SLA timer currently governing the case.",
+      "enum": [
+        "INITIAL_REVIEW",
+        "DOCS_RESPONSE",
+        "APPEAL_REVIEW"
+      ],
+      "title": "SlaTypeEnum",
+      "type": "string"
+    }
+  },
+  "description": "Event contract for 'case.status.changed' topic.\nEmitted internally on every case state transition for queue indexing, notifications, and audit logging.",
+  "properties": {
+    "event_id": {
+      "description": "Unique event UUID",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "default": "case.status.changed",
+      "description": "Event topic name",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "UTC timestamp of transition",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "case_id": {
+      "description": "Case tracking ID",
+      "minLength": 1,
+      "title": "Case Id",
+      "type": "string"
+    },
+    "claim_ref": {
+      "description": "Claim reference ID",
+      "minLength": 1,
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "previous_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CaseStatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Status prior to transition (null for new cases)"
+    },
+    "new_status": {
+      "$ref": "#/$defs/CaseStatusEnum",
+      "description": "New case status"
+    },
+    "changed_by": {
+      "description": "User ID or service that initiated change",
+      "minLength": 1,
+      "title": "Changed By",
+      "type": "string"
+    },
+    "changed_by_role": {
+      "description": "Role of actor (e.g. system, Auditor, Provider)",
+      "minLength": 1,
+      "title": "Changed By Role",
+      "type": "string"
+    },
+    "assigned_auditor_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Assigned auditor user ID",
+      "title": "Assigned Auditor Id"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Description/reason for state change",
+      "title": "Reason"
+    },
+    "sla_type": {
+      "$ref": "#/$defs/SlaTypeEnum",
+      "default": "INITIAL_REVIEW",
+      "description": "Active SLA clock type"
+    },
+    "sla_due_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Timestamp when current SLA expires",
+      "title": "Sla Due At"
+    },
+    "sla_breached": {
+      "default": false,
+      "description": "Flag indicating if SLA deadline has passed",
+      "title": "Sla Breached",
+      "type": "boolean"
+    },
+    "decision_summary": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DecisionSummary"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Populated when new_status is DECISION_RECORDED"
+    }
+  },
+  "required": [
+    "case_id",
+    "claim_ref",
+    "new_status",
+    "changed_by",
+    "changed_by_role"
+  ],
+  "title": "CaseStatusChangedEvent",
+  "type": "object"
+}

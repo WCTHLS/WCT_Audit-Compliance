@@ -1,0 +1,247 @@
+{
+  "$defs": {
+    "EvidencePointers": {
+      "description": "Pointers to the upstream/mock evidence bundles referenced by the case.\nEnables microservices to retrieve clinical records, risk models, and peer stats.",
+      "properties": {
+        "clinical_evidence": {
+          "description": "Path/URI to extracted clinical notes and claim lines fixture",
+          "title": "Clinical Evidence",
+          "type": "string"
+        },
+        "risk_factors": {
+          "description": "Path/URI to SHAP risk factors and model explainability fixture",
+          "title": "Risk Factors",
+          "type": "string"
+        },
+        "peer_comparison": {
+          "$ref": "#/$defs/PeerComparisonData",
+          "description": "Peer benchmarking metrics and data reference"
+        },
+        "claim_flags": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path/URI to clinical edit rule flags fixture",
+          "title": "Claim Flags"
+        }
+      },
+      "required": [
+        "clinical_evidence",
+        "risk_factors",
+        "peer_comparison"
+      ],
+      "title": "EvidencePointers",
+      "type": "object"
+    },
+    "PeerComparisonData": {
+      "description": "Structured metrics and fixture pointer for provider peer comparison.\nUsed by peer_comparison.py to compute percentile rank and median ratios deterministically.",
+      "properties": {
+        "specialty": {
+          "description": "Provider medical specialty (e.g. Interventional Cardiology)",
+          "title": "Specialty",
+          "type": "string"
+        },
+        "region": {
+          "description": "Geographic region / peer market (e.g. US-Northeast, NY-Metro)",
+          "title": "Region",
+          "type": "string"
+        },
+        "cohort_size": {
+          "description": "Number of peers in the specialty/region cohort",
+          "minimum": 1,
+          "title": "Cohort Size",
+          "type": "integer"
+        },
+        "provider_metric_value": {
+          "description": "Provider's metric value (e.g. Mod 25 billing rate)",
+          "minimum": 0.0,
+          "title": "Provider Metric Value",
+          "type": "number"
+        },
+        "peer_median": {
+          "description": "Median metric value across the peer cohort",
+          "minimum": 0.0,
+          "title": "Peer Median",
+          "type": "number"
+        },
+        "peer_percentile": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Computed percentile rank (0-100)",
+          "title": "Peer Percentile"
+        },
+        "fixture_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path or key to detailed peer distribution fixture",
+          "title": "Fixture Ref"
+        }
+      },
+      "required": [
+        "specialty",
+        "region",
+        "cohort_size",
+        "provider_metric_value",
+        "peer_median"
+      ],
+      "title": "PeerComparisonData",
+      "type": "object"
+    }
+  },
+  "description": "Event contract for 'case.created' topic.\nPublished by FWA Detection to initiate an audit case in Module 5.",
+  "properties": {
+    "event_id": {
+      "description": "Unique event UUID",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "default": "case.created",
+      "description": "Event topic name",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "UTC timestamp of trigger",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "source_module": {
+      "default": "fwa_detection",
+      "description": "Originating module provenance",
+      "title": "Source Module",
+      "type": "string"
+    },
+    "is_synthetic": {
+      "default": true,
+      "description": "Flag indicating mock/test data for easy lifecycle teardown",
+      "title": "Is Synthetic",
+      "type": "boolean"
+    },
+    "case_id": {
+      "description": "Case tracking ID (e.g. CASE-2026-001)",
+      "minLength": 1,
+      "title": "Case Id",
+      "type": "string"
+    },
+    "claim_ref": {
+      "description": "Claim reference ID (e.g. CLM-99214-8841)",
+      "minLength": 1,
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "facility_npi": {
+      "description": "10-digit Hospital / Facility NPI",
+      "maxLength": 10,
+      "minLength": 10,
+      "title": "Facility Npi",
+      "type": "string"
+    },
+    "facility_name": {
+      "description": "Hospital or medical facility legal name",
+      "minLength": 1,
+      "title": "Facility Name",
+      "type": "string"
+    },
+    "doctor_npi": {
+      "description": "10-digit Rendering Physician NPI",
+      "maxLength": 10,
+      "minLength": 10,
+      "title": "Doctor Npi",
+      "type": "string"
+    },
+    "doctor_name": {
+      "description": "Rendering doctor full name",
+      "minLength": 1,
+      "title": "Doctor Name",
+      "type": "string"
+    },
+    "patient_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Anonymized patient identifier (e.g. PAT-44910)",
+      "title": "Patient Id"
+    },
+    "service_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Date of Service (DOS) when medical care was provided",
+      "title": "Service Date"
+    },
+    "total_claim_amount": {
+      "description": "Total billed claim dollar amount",
+      "minimum": 0.0,
+      "title": "Total Claim Amount",
+      "type": "number"
+    },
+    "risk_score": {
+      "description": "FWA ML risk score on a 100-1000 scale (>=500 is risky)",
+      "maximum": 1000,
+      "minimum": 100,
+      "title": "Risk Score",
+      "type": "integer"
+    },
+    "flagged_reason": {
+      "description": "Detailed reason why the claim was flagged for audit",
+      "minLength": 1,
+      "title": "Flagged Reason",
+      "type": "string"
+    },
+    "evidence_pointers": {
+      "$ref": "#/$defs/EvidencePointers",
+      "description": "Pointers to clinical, risk, and peer evidence bundles"
+    }
+  },
+  "required": [
+    "case_id",
+    "claim_ref",
+    "facility_npi",
+    "facility_name",
+    "doctor_npi",
+    "doctor_name",
+    "total_claim_amount",
+    "risk_score",
+    "flagged_reason",
+    "evidence_pointers"
+  ],
+  "title": "CaseCreatedEvent",
+  "type": "object"
+}

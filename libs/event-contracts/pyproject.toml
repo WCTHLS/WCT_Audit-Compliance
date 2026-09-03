@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wct-event-contracts"
+version = "0.1.0"
+description = "Event contracts and JSON Schemas for WCT Module 5 Audit & Compliance"
+readme = "README.md"
+authors = [{ name = "WCT Engineering Team" }]
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["event_contracts*"]
