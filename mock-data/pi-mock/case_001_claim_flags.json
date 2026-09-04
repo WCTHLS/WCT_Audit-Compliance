@@ -1,0 +1,26 @@
+{
+  "case_id": "CASE-2026-001",
+  "claim_ref": "CLM-99214-8841",
+  "evaluated_at": "2026-09-04T09:59:00Z",
+  "total_flags": 2,
+  "flags": [
+    {
+      "flag_code": "PI-EDIT-MOD25-UNBUNDLED",
+      "severity": "HIGH",
+      "line_number": 1,
+      "rule_name": "CMS NCCI Policy Manual - Modifier 25 Documentation Requirement",
+      "regulatory_citation": "CMS NCCI Policy Manual, Chapter 1, Section E; CPT Guidelines for 99215",
+      "description": "Modifier 25 appended to Level 5 E&M service on same date of service as diagnostic procedure 93000 without distinct diagnosis code or documented separate problem.",
+      "recommended_action": "DENY_LINE_ITEM"
+    },
+    {
+      "flag_code": "PI-EDIT-E&M-UPCODING",
+      "severity": "MEDIUM",
+      "line_number": 1,
+      "rule_name": "E&M Medical Decision Making Level Mismatch",
+      "regulatory_citation": "AMA CPT 2024 Evaluation and Management Guidelines, Table 2 (MDM Scoring)",
+      "description": "Straightforward clinical management documented in progress note does not support high-complexity Level 5 MDM.",
+      "recommended_action": "DOWNCODE_TO_99213"
+    }
+  ]
+}

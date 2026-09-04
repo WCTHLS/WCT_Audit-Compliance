@@ -1,0 +1,32 @@
+{
+  "event_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "event_type": "case.created",
+  "timestamp": "2026-09-04T10:00:00Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-001",
+  "claim_ref": "CLM-99214-8841",
+  "facility_npi": "1295847361",
+  "facility_name": "Memorial Health System",
+  "doctor_npi": "1093847562",
+  "doctor_name": "Dr. Robert Vance, MD",
+  "patient_id": "PAT-44910",
+  "service_date": "2026-08-10",
+  "total_claim_amount": 3250.00,
+  "risk_score": 850,
+  "flagged_reason": "High-confidence anomaly: Frequent unbundling of CPT 99215 (Level 5 E&M) with modifier 25 alongside minor diagnostic procedures (93000 ECG) without supporting documentation of separate distinct evaluation.",
+  "evidence_pointers": {
+    "clinical_evidence": "mock-data/fwa-mock/case_001_clinical_evidence.json",
+    "risk_factors": "mock-data/fwa-mock/case_001_risk_factors.json",
+    "peer_comparison": {
+      "specialty": "Interventional Cardiology",
+      "region": "US-Northeast",
+      "cohort_size": 184,
+      "provider_metric_value": 88.0,
+      "peer_median": 18.0,
+      "peer_percentile": 98.2,
+      "fixture_ref": "mock-data/fwa-mock/case_001_peer_comparison.json"
+    },
+    "claim_flags": "mock-data/pi-mock/case_001_claim_flags.json"
+  }
+}

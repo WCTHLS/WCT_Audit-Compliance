@@ -10,3 +10,7 @@ dist/
 build/
 *.egg-info/
 .pytest_cache/
+.coverage
+htmlcov/
+.vscode/
+.idea/

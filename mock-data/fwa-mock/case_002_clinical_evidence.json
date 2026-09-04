@@ -1,0 +1,60 @@
+{
+  "case_id": "CASE-2026-002",
+  "claim_ref": "CLM-DRG-469-1029",
+  "patient_demographics": {
+    "patient_id": "PAT-78192",
+    "age": 69,
+    "gender": "F",
+    "insurance_type": "Medicare Fee-For-Service"
+  },
+  "facility": {
+    "npi": "1679543201",
+    "name": "St. Peter General Hospital",
+    "type": "Inpatient Acute Care Hospital",
+    "address": "500 Lakeview Blvd, Chicago, IL 60611"
+  },
+  "rendering_provider": {
+    "npi": "1841320958",
+    "name": "Dr. Arthur Pendelton, MD",
+    "specialty": "Orthopedic Surgery"
+  },
+  "admission_date": "2026-08-14",
+  "discharge_date": "2026-08-17",
+  "length_of_stay_days": 3,
+  "billed_drg": {
+    "code": "469",
+    "title": "Major Hip and Knee Joint Replacement or Reattachment of Lower Extremity with MCC",
+    "billed_amount": 28500.00,
+    "relative_weight": 2.842
+  },
+  "principal_diagnosis": {
+    "code": "M17.11",
+    "description": "Primary osteoarthritis, right knee"
+  },
+  "secondary_diagnoses": [
+    {
+      "code": "I16.0",
+      "description": "Hypertensive urgency (Coded as MCC)",
+      "is_mcc": true
+    },
+    {
+      "code": "E11.9",
+      "description": "Type 2 diabetes mellitus without complications",
+      "is_mcc": false
+    },
+    {
+      "code": "Z96.651",
+      "description": "Presence of right artificial knee joint",
+      "is_mcc": false
+    }
+  ],
+  "inpatient_procedures": [
+    {
+      "icd10_pcs": "0SRD0J9",
+      "description": "Replacement of Right Knee Joint with Synthetic Substitute, Cemented, Open Approach",
+      "date": "2026-08-14"
+    }
+  ],
+  "medical_record_excerpt": "69-year-old female admitted for elective right total knee arthroplasty. Surgery performed without complication. Post-op Day 1: Patient had a single blood pressure reading of 168/92 mmHg post-anesthesia recovery. Given 1 dose of oral Amlodipine 5mg. Subsequent blood pressures normalized (130s/80s). Discharged on post-op day 3 in stable condition to home physical therapy.",
+  "auditor_clinical_notes": "Single transient blood pressure elevation post-surgery managed with routine oral medication does not meet clinical diagnostic criteria for I16.0 (Hypertensive Urgency) or justify an MCC classification. Appropriate coding is I10 (Essential Hypertension) under MS-DRG 470."
+}

@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE-2026-001",
+  "provider_npi": "1093847562",
+  "provider_name": "Dr. Robert Vance, MD",
+  "specialty": "Interventional Cardiology",
+  "region": "US-Northeast",
+  "metric_name": "Modifier 25 Attachment Rate (%)",
+  "provider_value": 88.0,
+  "cohort_size": 184,
+  "statistics": {
+    "mean": 21.4,
+    "std_dev": 14.2,
+    "min": 2.0,
+    "p25": 11.0,
+    "median": 18.0,
+    "p75": 28.5,
+    "p90": 42.0,
+    "p95": 58.0,
+    "p99": 85.0,
+    "max": 92.0,
+    "computed_percentile": 98.2,
+    "ratio_to_median": 4.89
+  },
+  "distribution_histogram": [
+    {"bucket": "0-10%", "provider_count": 42},
+    {"bucket": "11-20%", "provider_count": 68},
+    {"bucket": "21-30%", "provider_count": 41},
+    {"bucket": "31-40%", "provider_count": 18},
+    {"bucket": "41-50%", "provider_count": 8},
+    {"bucket": "51-60%", "provider_count": 4},
+    {"bucket": "61-70%", "provider_count": 1},
+    {"bucket": "71-80%", "provider_count": 1},
+    {"bucket": "81-90%", "provider_count": 1}
+  ]
+}

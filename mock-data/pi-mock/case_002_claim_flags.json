@@ -1,0 +1,16 @@
+{
+  "case_id": "CASE-2026-002",
+  "claim_ref": "CLM-DRG-469-1029",
+  "evaluated_at": "2026-09-04T10:14:30Z",
+  "total_flags": 1,
+  "flags": [
+    {
+      "flag_code": "PI-EDIT-DRG-MCC-UNSUPPORTED",
+      "severity": "CRITICAL",
+      "rule_name": "MS-DRG Validation & Clinical Validity of Secondary MCC",
+      "regulatory_citation": "CMS Hospital Inpatient Prospective Payment System (IPPS) Guidelines, Section 412.60; AHA Coding Clinic Q4 2023",
+      "description": "Secondary diagnosis I16.0 (Hypertensive Urgency) does not meet UHDDS criteria for reporting as an MCC. Treatment documented in progress note reflects routine essential hypertension management.",
+      "recommended_action": "REASSIGN_DRG_TO_470"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "case_id": "CASE-2026-001",
+  "claim_ref": "CLM-99214-8841",
+  "model_metadata": {
+    "model_name": "WCT-FWA-XGBoost-Ensemble-v3",
+    "evaluation_timestamp": "2026-09-04T09:58:30Z",
+    "risk_score": 850,
+    "confidence_level": 0.94
+  },
+  "risk_factors": [
+    {
+      "factor_name": "MODIFIER_25_UTILIZATION_RATE",
+      "feature_value": 0.88,
+      "benchmark_median": 0.18,
+      "shap_value": 0.42,
+      "description": "Provider attaches modifier 25 to 88% of all outpatient evaluation visits vs peer specialty median of 18%."
+    },
+    {
+      "factor_name": "E&M_LEVEL_5_INTENSITY",
+      "feature_value": 0.74,
+      "benchmark_median": 0.15,
+      "shap_value": 0.31,
+      "description": "74% of provider's E&M visits are coded as Level 5 (99215) vs peer specialty median of 15%."
+    },
+    {
+      "factor_name": "SAME_DAY_DIAGNOSTIC_SAME_DIAGNOSIS",
+      "feature_value": 1.0,
+      "benchmark_median": 0.22,
+      "shap_value": 0.18,
+      "description": "E&M visit and diagnostic ECG share identical primary ICD-10 code (I25.10) with no distinct secondary acute diagnosis."
+    },
+    {
+      "factor_name": "CLAIM_VELOCITY_ANOMALY",
+      "feature_value": 34.0,
+      "benchmark_median": 12.0,
+      "shap_value": 0.09,
+      "description": "Provider billed 34 claims per day on the date of service, exceeding the 95th percentile threshold."
+    }
+  ],
+  "shap_waterfall": {
+    "base_value": 250,
+    "final_prediction": 850,
+    "features": [
+      {"name": "Mod 25 Frequency", "contribution": 260},
+      {"name": "Level 5 E&M Ratio", "contribution": 195},
+      {"name": "Unbundled ECG Match", "contribution": 110},
+      {"name": "Daily Claim Volume", "contribution": 35}
+    ]
+  }
+}

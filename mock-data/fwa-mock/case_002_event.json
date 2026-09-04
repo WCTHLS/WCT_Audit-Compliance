@@ -1,0 +1,32 @@
+{
+  "event_id": "8f3a027c-614e-48a5-8a9d-5a1e7b99c012",
+  "event_type": "case.created",
+  "timestamp": "2026-09-04T10:15:00Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-002",
+  "claim_ref": "CLM-DRG-469-1029",
+  "facility_npi": "1679543201",
+  "facility_name": "St. Peter General Hospital",
+  "doctor_npi": "1841320958",
+  "doctor_name": "Dr. Arthur Pendelton, MD",
+  "patient_id": "PAT-78192",
+  "service_date": "2026-08-14",
+  "total_claim_amount": 28500.00,
+  "risk_score": 920,
+  "flagged_reason": "High-risk inpatient DRG upcoding anomaly: MS-DRG 469 (Major Joint Replacement with MCC) billed instead of DRG 470 (without MCC). Secondary MCC diagnosis (I16.0 Hypertensive Urgency) lacks clinical validation and monitoring evidence in the inpatient chart.",
+  "evidence_pointers": {
+    "clinical_evidence": "mock-data/fwa-mock/case_002_clinical_evidence.json",
+    "risk_factors": "mock-data/fwa-mock/case_002_risk_factors.json",
+    "peer_comparison": {
+      "specialty": "Orthopedic Surgery",
+      "region": "US-Midwest",
+      "cohort_size": 142,
+      "provider_metric_value": 38.5,
+      "peer_median": 9.2,
+      "peer_percentile": 99.1,
+      "fixture_ref": "mock-data/fwa-mock/case_002_peer_comparison.json"
+    },
+    "claim_flags": "mock-data/pi-mock/case_002_claim_flags.json"
+  }
+}

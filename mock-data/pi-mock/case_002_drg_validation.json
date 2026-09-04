@@ -1,0 +1,28 @@
+{
+  "case_id": "CASE-2026-002",
+  "claim_ref": "CLM-DRG-469-1029",
+  "admission_type": "Elective Inpatient",
+  "drg_comparison": {
+    "billed_drg": {
+      "drg_code": "469",
+      "drg_title": "Major Hip and Knee Joint Replacement or Reattachment of Lower Extremity with MCC",
+      "relative_weight": 2.842,
+      "reimbursement_amount": 28500.00
+    },
+    "validated_drg": {
+      "drg_code": "470",
+      "drg_title": "Major Hip and Knee Joint Replacement or Reattachment of Lower Extremity without MCC",
+      "relative_weight": 1.714,
+      "reimbursement_amount": 14000.00
+    },
+    "overpayment_variance": 14500.00
+  },
+  "mcc_adjudication": {
+    "disputed_code": "I16.0",
+    "disputed_title": "Hypertensive urgency",
+    "clinical_finding": "Blood pressure elevated transiently on post-op day 1 (168/92). Responded to single oral dose of Amlodipine. No acute end-organ damage, no IV drips, no ICU monitoring.",
+    "reassigned_code": "I10",
+    "reassigned_title": "Essential (primary) hypertension (Non-CC/MCC)",
+    "audit_recommendation": "Adjust claim to MS-DRG 470 and recover $14,500.00 overpayment."
+  }
+}

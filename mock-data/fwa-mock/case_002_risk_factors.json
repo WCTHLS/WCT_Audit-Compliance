@@ -1,0 +1,42 @@
+{
+  "case_id": "CASE-2026-002",
+  "claim_ref": "CLM-DRG-469-1029",
+  "model_metadata": {
+    "model_name": "WCT-Inpatient-DRG-Anomaly-v2",
+    "evaluation_timestamp": "2026-09-04T10:14:00Z",
+    "risk_score": 920,
+    "confidence_level": 0.97
+  },
+  "risk_factors": [
+    {
+      "factor_name": "DRG_MCC_CAPTURE_RATE_ANOMALY",
+      "feature_value": 0.385,
+      "benchmark_median": 0.092,
+      "shap_value": 0.48,
+      "description": "Hospital codes DRG 469 (with MCC) on 38.5% of knee/hip replacements vs regional hospital median of 9.2%."
+    },
+    {
+      "factor_name": "ISOLATED_TRANSIENT_MCC_OCCURRENCE",
+      "feature_value": 1.0,
+      "benchmark_median": 0.05,
+      "shap_value": 0.34,
+      "description": "The coded MCC (I16.0 Hypertensive Urgency) appears only once in nursing notes without IV antihypertensive therapy or cardiology consult."
+    },
+    {
+      "factor_name": "SHORT_STAY_HIGH_DRG_MISMATCH",
+      "feature_value": 3.0,
+      "benchmark_median": 6.8,
+      "shap_value": 0.12,
+      "description": "Patient length of stay (3 days) is significantly lower than average length of stay for DRG 469 (6.8 days), indicating a low-severity clinical course."
+    }
+  ],
+  "shap_waterfall": {
+    "base_value": 280,
+    "final_prediction": 920,
+    "features": [
+      {"name": "Hospital MCC Rate vs Peers", "contribution": 320},
+      {"name": "Unsubstantiated Urgency Code", "contribution": 240},
+      {"name": "Length of Stay Mismatch", "contribution": 80}
+    ]
+  }
+}
