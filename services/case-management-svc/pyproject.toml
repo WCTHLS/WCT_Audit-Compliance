@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wct-case-management-svc"
+version = "0.1.0"
+description = "Case Management Service - System of Record for WCT Module 5 Audit and Compliance"
+readme = "README.md"
+authors = [{ name = "WCT Engineering Team" }]
+requires-python = ">=3.10"
+dependencies = [
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.13.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
+    "wct-event-contracts",
+    "wct-auth-middleware",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "httpx>=0.27.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
