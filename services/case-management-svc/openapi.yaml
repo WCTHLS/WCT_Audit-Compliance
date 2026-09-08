@@ -1,0 +1,779 @@
+openapi: 3.1.0
+info:
+  title: WCT Case Management Service
+  description: Central System of Record for WCT Module 5 (Audit & Compliance Workflow).
+    Manages healthcare audit case lifecycles, clinical evidence pointers, 72-hour
+    human-confirmation SLA clocks, and human auditor decisions.
+  version: 0.1.0
+paths:
+  /cases:
+    post:
+      tags:
+      - Case Management
+      summary: Create Audit Case
+      description: Creates a new audit case record with 72-hour SLA deadline tracking
+        and evidence pointers.
+      operationId: create_new_case_cases_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Format: Bearer <jwt-token>'
+          title: Authorization
+        description: 'Format: Bearer <jwt-token>'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - Case Management
+      summary: List Audit Cases
+      description: Retrieves a paginated list of audit cases with optional filters
+        for workbench queues.
+      operationId: get_cases_cases_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/CaseStatusEnum'
+          - type: 'null'
+          description: Filter by case status
+          title: Status
+        description: Filter by case status
+      - name: assigned_auditor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by assigned auditor username/email
+          title: Assigned Auditor
+        description: Filter by assigned auditor username/email
+      - name: source_module
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by source module (e.g. fwa_detection)
+          title: Source Module
+        description: Filter by source module (e.g. fwa_detection)
+      - name: sla_breached
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          description: Filter by SLA breach status
+          title: Sla Breached
+        description: Filter by SLA breach status
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of cases to skip (pagination offset)
+          default: 0
+          title: Skip
+        description: Number of cases to skip (pagination offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Max cases to return (page size)
+          default: 50
+          title: Limit
+        description: Max cases to return (page size)
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Format: Bearer <jwt-token>'
+          title: Authorization
+        description: 'Format: Bearer <jwt-token>'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /cases/{case_id}:
+    get:
+      tags:
+      - Case Management
+      summary: Get Case Details
+      description: Retrieves full case details including all clinical evidence pointers
+        and audit history.
+      operationId: get_case_cases__case_id__get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Case Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Format: Bearer <jwt-token>'
+          title: Authorization
+        description: 'Format: Bearer <jwt-token>'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Case Management
+      summary: Update Case
+      description: Applies partial updates to a case (assign auditor, transition status,
+        or record human decision).
+      operationId: patch_case_cases__case_id__patch
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Case Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Format: Bearer <jwt-token>'
+          title: Authorization
+        description: 'Format: Bearer <jwt-token>'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /:
+    get:
+      tags:
+      - System
+      summary: Service Information
+      description: Returns basic service identification and API status.
+      operationId: root_info__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Root Info  Get
+  /health:
+    get:
+      tags:
+      - System
+      summary: Health and Readiness Check
+      description: Liveness and database readiness check for container orchestration
+        and monitoring.
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Check Health Get
+components:
+  schemas:
+    AuditDecisionEnum:
+      type: string
+      enum:
+      - UPHOLD
+      - REVERSE
+      - REQUEST_INFO
+      title: AuditDecisionEnum
+      description: Auditor decision actions.
+    CaseCreate:
+      properties:
+        claim_ref:
+          type: string
+          minLength: 1
+          title: Claim Ref
+          description: Claim reference ID (e.g. CLM-99214-8841)
+        risk_score:
+          type: integer
+          maximum: 1000.0
+          minimum: 100.0
+          title: Risk Score
+          description: FWA ML risk score (100-1000)
+        flagged_reason:
+          type: string
+          minLength: 1
+          title: Flagged Reason
+          description: Detailed reason for audit flag
+        source_module:
+          type: string
+          title: Source Module
+          description: Originating source module
+          default: fwa_detection
+        is_synthetic:
+          type: boolean
+          title: Is Synthetic
+          description: Indicates mock/test data for easy lifecycle teardown
+          default: true
+        facility_npi:
+          type: string
+          maxLength: 10
+          minLength: 10
+          title: Facility Npi
+          description: 10-digit Hospital / Facility NPI
+        facility_name:
+          type: string
+          minLength: 1
+          title: Facility Name
+          description: Hospital or medical facility legal name
+        doctor_npi:
+          type: string
+          maxLength: 10
+          minLength: 10
+          title: Doctor Npi
+          description: 10-digit Rendering Physician NPI
+        doctor_name:
+          type: string
+          minLength: 1
+          title: Doctor Name
+          description: Rendering doctor full name
+        patient_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Patient Id
+          description: Anonymized patient identifier
+        service_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Service Date
+          description: Date of Service (DOS)
+        total_claim_amount:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Total Claim Amount
+          description: Total billed claim dollar amount
+        evidence_pointers:
+          anyOf:
+          - $ref: '#/components/schemas/EvidencePointers'
+          - additionalProperties: true
+            type: object
+          title: Evidence Pointers
+          description: Pointers to clinical, risk factors, and peer comparison evidence
+            bundles
+        case_id:
+          type: string
+          minLength: 1
+          title: Case Id
+          description: Unique case identifier (e.g. CASE-2026-001)
+        status:
+          $ref: '#/components/schemas/CaseStatusEnum'
+          description: Initial case lifecycle status
+          default: NEW
+        assigned_auditor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assigned Auditor
+          description: Assigned auditor user ID / email
+        sla_due_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Sla Due At
+          description: Deadline timestamp for SLA confirmation (defaults to now +
+            72 hours if omitted)
+        sla_type:
+          $ref: '#/components/schemas/SlaTypeEnum'
+          description: Governing SLA timer type
+          default: INITIAL_REVIEW
+      type: object
+      required:
+      - claim_ref
+      - risk_score
+      - flagged_reason
+      - facility_npi
+      - facility_name
+      - doctor_npi
+      - doctor_name
+      - total_claim_amount
+      - evidence_pointers
+      - case_id
+      title: CaseCreate
+      description: Request schema for creating a new audit case.
+    CaseListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/CaseRead'
+          type: array
+          title: Items
+          description: List of cases matching query criteria
+        total:
+          type: integer
+          minimum: 0.0
+          title: Total
+          description: Total count of matching cases
+        skip:
+          type: integer
+          minimum: 0.0
+          title: Skip
+          description: Number of skipped items
+          default: 0
+        limit:
+          type: integer
+          minimum: 1.0
+          title: Limit
+          description: Maximum items per page
+          default: 50
+      type: object
+      required:
+      - items
+      - total
+      title: CaseListResponse
+      description: Paginated list of audit cases.
+    CaseRead:
+      properties:
+        claim_ref:
+          type: string
+          minLength: 1
+          title: Claim Ref
+          description: Claim reference ID (e.g. CLM-99214-8841)
+        risk_score:
+          type: integer
+          maximum: 1000.0
+          minimum: 100.0
+          title: Risk Score
+          description: FWA ML risk score (100-1000)
+        flagged_reason:
+          type: string
+          minLength: 1
+          title: Flagged Reason
+          description: Detailed reason for audit flag
+        source_module:
+          type: string
+          title: Source Module
+          description: Originating source module
+          default: fwa_detection
+        is_synthetic:
+          type: boolean
+          title: Is Synthetic
+          description: Indicates mock/test data for easy lifecycle teardown
+          default: true
+        facility_npi:
+          type: string
+          maxLength: 10
+          minLength: 10
+          title: Facility Npi
+          description: 10-digit Hospital / Facility NPI
+        facility_name:
+          type: string
+          minLength: 1
+          title: Facility Name
+          description: Hospital or medical facility legal name
+        doctor_npi:
+          type: string
+          maxLength: 10
+          minLength: 10
+          title: Doctor Npi
+          description: 10-digit Rendering Physician NPI
+        doctor_name:
+          type: string
+          minLength: 1
+          title: Doctor Name
+          description: Rendering doctor full name
+        patient_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Patient Id
+          description: Anonymized patient identifier
+        service_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Service Date
+          description: Date of Service (DOS)
+        total_claim_amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Total Claim Amount
+          description: Total billed claim dollar amount
+        evidence_pointers:
+          anyOf:
+          - $ref: '#/components/schemas/EvidencePointers'
+          - additionalProperties: true
+            type: object
+          title: Evidence Pointers
+          description: Pointers to clinical, risk factors, and peer comparison evidence
+            bundles
+        case_id:
+          type: string
+          title: Case Id
+          description: Unique case identifier
+        status:
+          $ref: '#/components/schemas/CaseStatusEnum'
+          description: Current lifecycle state
+        assigned_auditor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assigned Auditor
+          description: Assigned auditor email/ID
+        sla_due_at:
+          type: string
+          format: date-time
+          title: Sla Due At
+          description: Timestamp deadline for SLA
+        sla_type:
+          $ref: '#/components/schemas/SlaTypeEnum'
+          description: Active SLA timer type
+        sla_breached:
+          type: boolean
+          title: Sla Breached
+          description: Whether the SLA window was breached
+          default: false
+        decision:
+          anyOf:
+          - $ref: '#/components/schemas/AuditDecisionEnum'
+          - type: 'null'
+          description: Auditor decision
+        decision_rationale:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision Rationale
+          description: Auditor decision rationale
+        regulatory_basis:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Regulatory Basis
+          description: Regulatory citation
+        decided_by:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decided By
+          description: User ID of deciding auditor
+        decided_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Decided At
+          description: Decision timestamp
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Case creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: Last update timestamp
+      type: object
+      required:
+      - claim_ref
+      - risk_score
+      - flagged_reason
+      - facility_npi
+      - facility_name
+      - doctor_npi
+      - doctor_name
+      - total_claim_amount
+      - evidence_pointers
+      - case_id
+      - status
+      - sla_due_at
+      - sla_type
+      - created_at
+      - updated_at
+      title: CaseRead
+      description: Full case response schema returned on reads.
+    CaseStatusEnum:
+      type: string
+      enum:
+      - NEW
+      - ENRICHING
+      - READY_FOR_REVIEW
+      - DOCS_REQUESTED
+      - DECISION_RECORDED
+      - DISPUTED
+      - UNDER_APPEAL_REVIEW
+      - APPEAL_SENT
+      - CLOSED
+      title: CaseStatusEnum
+      description: Lifecycle states of an audit case.
+    CaseUpdate:
+      properties:
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/CaseStatusEnum'
+          - type: 'null'
+          description: Updated case lifecycle status
+        assigned_auditor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assigned Auditor
+          description: Assigned human auditor email/ID
+        sla_breached:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Sla Breached
+          description: Flag indicating SLA deadline breach
+        sla_due_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Sla Due At
+          description: Adjusted SLA deadline timestamp
+        sla_type:
+          anyOf:
+          - $ref: '#/components/schemas/SlaTypeEnum'
+          - type: 'null'
+          description: Active SLA timer type
+        decision:
+          anyOf:
+          - $ref: '#/components/schemas/AuditDecisionEnum'
+          - type: 'null'
+          description: 'Auditor decision: UPHOLD, REVERSE, REQUEST_INFO'
+        decision_rationale:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+          title: Decision Rationale
+          description: Written justification for decision
+        regulatory_basis:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Regulatory Basis
+          description: Regulatory policy / NCCI citation
+        decided_by:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decided By
+          description: User ID / email of the auditor who recorded the decision
+        decided_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Decided At
+          description: Timestamp when the decision was recorded
+      type: object
+      title: CaseUpdate
+      description: 'Request schema for PATCH /cases/{id}.
+
+        All fields are optional for partial updates (auditor assignment, state transition,
+        decision recording).'
+    EvidencePointers:
+      properties:
+        clinical_evidence:
+          type: string
+          title: Clinical Evidence
+          description: Path/URI to extracted clinical notes and claim lines fixture
+        risk_factors:
+          type: string
+          title: Risk Factors
+          description: Path/URI to SHAP risk factors and model explainability fixture
+        peer_comparison:
+          $ref: '#/components/schemas/PeerComparisonData'
+          description: Peer benchmarking metrics and data reference
+        claim_flags:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Claim Flags
+          description: Path/URI to clinical edit rule flags fixture
+      type: object
+      required:
+      - clinical_evidence
+      - risk_factors
+      - peer_comparison
+      title: EvidencePointers
+      description: 'Pointers to the upstream/mock evidence bundles referenced by the
+        case.
+
+        Enables microservices to retrieve clinical records, risk models, and peer
+        stats.'
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PeerComparisonData:
+      properties:
+        specialty:
+          type: string
+          title: Specialty
+          description: Provider medical specialty (e.g. Interventional Cardiology)
+        region:
+          type: string
+          title: Region
+          description: Geographic region / peer market (e.g. US-Northeast, NY-Metro)
+        cohort_size:
+          type: integer
+          minimum: 1.0
+          title: Cohort Size
+          description: Number of peers in the specialty/region cohort
+        provider_metric_value:
+          type: number
+          minimum: 0.0
+          title: Provider Metric Value
+          description: Provider's metric value (e.g. Mod 25 billing rate)
+        peer_median:
+          type: number
+          minimum: 0.0
+          title: Peer Median
+          description: Median metric value across the peer cohort
+        peer_percentile:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Peer Percentile
+          description: Computed percentile rank (0-100)
+        fixture_ref:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Fixture Ref
+          description: Path or key to detailed peer distribution fixture
+      type: object
+      required:
+      - specialty
+      - region
+      - cohort_size
+      - provider_metric_value
+      - peer_median
+      title: PeerComparisonData
+      description: 'Structured metrics and fixture pointer for provider peer comparison.
+
+        Used by peer_comparison.py to compute percentile rank and median ratios deterministically.'
+    SlaTypeEnum:
+      type: string
+      enum:
+      - INITIAL_REVIEW
+      - DOCS_RESPONSE
+      - APPEAL_REVIEW
+      title: SlaTypeEnum
+      description: Type of SLA timer currently governing the case.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
