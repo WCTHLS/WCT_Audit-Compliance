@@ -138,6 +138,38 @@ services:
     depends_on:
       - temporal
 
+  case-management-svc:
+    build:
+      context: ..
+      dockerfile: services/case-management-svc/Dockerfile
+    container_name: audit-case-management-svc
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-audit_compliance}
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - KAFKA_TOPIC_CASE_CREATED=case.created
+      - KAFKA_CONSUMER_GROUP=wct-case-management-group
+      - SERVICE_PORT=8000
+    volumes:
+      - ../services/case-management-svc/src:/app/services/case-management-svc/src
+      - ../mock-data:/app/mock-data
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   redpanda_data:

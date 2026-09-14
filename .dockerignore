@@ -1,0 +1,22 @@
+# Virtual environment & git
+.venv/
+.git/
+.gitignore
+
+# Python caches
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest & test caches
+.pytest_cache/
+.coverage
+htmlcov/
+**/test/
+**/tests/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

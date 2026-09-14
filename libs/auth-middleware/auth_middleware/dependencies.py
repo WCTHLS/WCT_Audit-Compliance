@@ -4,34 +4,46 @@ FastAPI dependencies for JWT authentication and Role-Based Access Control (RBAC)
 
 from typing import Callable, List, Optional
 from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from auth_middleware.jwt_handler import AuthError, decode_jwt_token
 from auth_middleware.models import AuthenticatedUser, UserRoleEnum
 
+http_bearer = HTTPBearer(auto_error=False)
+
 
 def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
     authorization: Optional[str] = Header(None, description="Format: Bearer <jwt-token>"),
 ) -> AuthenticatedUser:
     """
-    FastAPI dependency that extracts and validates the JWT Bearer token from the Authorization header.
+    FastAPI dependency that extracts and validates the JWT Bearer token.
+    Supports OpenAPI Swagger Authorize button via HTTPBearer, as well as explicit Authorization header.
     Returns AuthenticatedUser on success, or raises 401 Unauthorized.
     """
-    if not authorization:
+    token: Optional[str] = None
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif authorization:
+        parts = authorization.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1]
+        elif len(parts) == 1:
+            token = parts[0]
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid Authorization header format. Expected 'Bearer <token>'.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Authorization header. Expected 'Bearer <token>'.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Authorization header format. Expected 'Bearer <token>'.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    token = parts[1]
     try:
         return decode_jwt_token(token)
     except AuthError as e:

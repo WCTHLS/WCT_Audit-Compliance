@@ -21,6 +21,8 @@ class CaseBase(BaseModel):
     """Base attributes shared across Case schemas."""
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
+    case_id: str = Field(..., min_length=1, description="Unique case identifier (e.g. CASE-2026-001)")
+    status: CaseStatusEnum = Field(default=CaseStatusEnum.NEW, description="Case lifecycle status")
     claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-99214-8841)")
     risk_score: int = Field(..., ge=100, le=1000, description="FWA ML risk score (100-1000)")
     flagged_reason: str = Field(..., min_length=1, description="Detailed reason for audit flag")
@@ -41,8 +43,6 @@ class CaseBase(BaseModel):
 
 class CaseCreate(CaseBase):
     """Request schema for creating a new audit case."""
-    case_id: str = Field(..., min_length=1, description="Unique case identifier (e.g. CASE-2026-001)")
-    status: CaseStatusEnum = Field(default=CaseStatusEnum.NEW, description="Initial case lifecycle status")
     assigned_auditor: Optional[str] = Field(None, description="Assigned auditor user ID / email")
     sla_due_at: Optional[datetime] = Field(
         default=None,
@@ -77,8 +77,6 @@ class CaseUpdate(BaseModel):
 
 class CaseRead(CaseBase):
     """Full case response schema returned on reads."""
-    case_id: str = Field(..., description="Unique case identifier")
-    status: CaseStatusEnum = Field(..., description="Current lifecycle state")
     assigned_auditor: Optional[str] = Field(None, description="Assigned auditor email/ID")
     sla_due_at: datetime = Field(..., description="Timestamp deadline for SLA")
     sla_type: SlaTypeEnum = Field(..., description="Active SLA timer type")
