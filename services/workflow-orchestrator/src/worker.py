@@ -1,19 +1,25 @@
 """
 Temporal Worker process for WCT Module 5 Audit and Compliance Workflow.
 
-Listens on the configured task queue, registers CaseAuditWorkflow,
-and executes workflow tasks dispatched by the Temporal server.
+Listens on the configured task queue, registers CaseAuditWorkflow and core activities,
+and executes tasks dispatched by the Temporal server.
 """
 
 import asyncio
 import logging
-import signal
 import sys
 from temporalio.client import Client
 from temporalio.worker import Worker
 
 from src.config import settings
 from workflows.case_audit_workflow import CaseAuditWorkflow
+from activities import (
+    fetch_case_activity,
+    summarize_case_activity,
+    screen_exclusions_activity,
+    notify_auditor_activity,
+    send_follow_up_activity,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,11 +48,18 @@ async def run_worker() -> None:
         client,
         task_queue=settings.TASK_QUEUE,
         workflows=[CaseAuditWorkflow],
-        activities=[],  # Activities will be registered in upcoming steps
+        activities=[
+            fetch_case_activity,
+            summarize_case_activity,
+            screen_exclusions_activity,
+            notify_auditor_activity,
+            send_follow_up_activity,
+        ],
     )
 
     logger.info(
-        f"Worker is actively listening on task queue: '{settings.TASK_QUEUE}'"
+        f"Worker is actively listening on task queue: '{settings.TASK_QUEUE}' "
+        f"with {len(worker._activities)} registered activities."
     )
     await worker.run()
 
