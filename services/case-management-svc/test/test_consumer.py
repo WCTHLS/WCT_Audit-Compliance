@@ -156,3 +156,22 @@ def test_ingest_fixture_file_helper(db_session):
     # Non-existent file should raise FileNotFoundError
     with pytest.raises(FileNotFoundError):
         ingest_fixture_file(db_session, "non_existent_file.json")
+
+
+def test_auto_trigger_temporal_workflow_mock(db_session, monkeypatch):
+    """Verify process_case_created_event invokes start_case_workflow."""
+    triggered_cases = []
+
+    def mock_start_case_workflow(case):
+        triggered_cases.append(case.case_id)
+        return "RUN-MOCK-123"
+
+    monkeypatch.setattr("src.temporal_client.start_case_workflow", mock_start_case_workflow)
+
+    fixture_path = MOCK_DATA_DIR / "fwa-mock" / "case_001_event.json"
+    case = ingest_fixture_file(db_session, fixture_path)
+
+    assert case.case_id == "CASE-2026-001"
+    assert len(triggered_cases) == 1
+    assert triggered_cases[0] == "CASE-2026-001"
+

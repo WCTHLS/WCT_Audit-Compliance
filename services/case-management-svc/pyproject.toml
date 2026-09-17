@@ -21,6 +21,7 @@ dependencies = [
     "pyyaml>=6.0",
     "wct-event-contracts",
     "wct-auth-middleware",
+    "temporalio>=1.9.0",
 ]
 
 [project.optional-dependencies]

@@ -111,6 +111,14 @@ def process_case_created_event(
         f"Successfully ingested case '{db_case.case_id}' for claim '{db_case.claim_ref}'. "
         f"Initial status: {db_case.status}, 72h SLA due at: {db_case.sla_due_at.isoformat()}."
     )
+
+    # 6. Auto-trigger Temporal CaseAuditWorkflow instance
+    try:
+        from src.temporal_client import start_case_workflow
+        start_case_workflow(db_case)
+    except Exception as te:
+        logger.warning(f"Temporal workflow trigger skipped/errored for case '{db_case.case_id}': {te}")
+
     return db_case
 
 

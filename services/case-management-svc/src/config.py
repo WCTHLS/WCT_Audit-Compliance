@@ -35,8 +35,17 @@ class Settings(BaseSettings):
     # Kafka / Redpanda Message Broker Configuration
     KAFKA_BOOTSTRAP_SERVERS: str = "localhost:19092"
     KAFKA_TOPIC_CASE_CREATED: str = "case.created"
-    KAFKA_CONSUMER_GROUP: str = "wct-case-management-group"
-    KAFKA_AUTO_OFFSET_RESET: str = "earliest"
+    # Temporal Workflow Orchestration Settings
+    TEMPORAL_HOST: str = "localhost"
+    TEMPORAL_PORT: int = 7233
+    TEMPORAL_NAMESPACE: str = "default"
+    TEMPORAL_TASK_QUEUE: str = "wct-case-audit-queue"
+    TEMPORAL_AUTO_TRIGGER: bool = True
+
+    @property
+    def temporal_address(self) -> str:
+        """Constructs full Temporal host:port address."""
+        return f"{self.TEMPORAL_HOST}:{self.TEMPORAL_PORT}"
 
     @property
     def database_url(self) -> str:
