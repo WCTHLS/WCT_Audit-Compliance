@@ -59,7 +59,7 @@ async def run_worker() -> None:
 
     logger.info(
         f"Worker is actively listening on task queue: '{settings.TASK_QUEUE}' "
-        f"with {len(worker._activities)} registered activities."
+        f"with core case audit activities."
     )
     await worker.run()
 

@@ -170,6 +170,32 @@ services:
       timeout: 5s
       retries: 5
 
+  workflow-orchestrator:
+    build:
+      context: ..
+      dockerfile: services/workflow-orchestrator/Dockerfile
+    container_name: audit-workflow-orchestrator
+    environment:
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
+      - TEMPORAL_NAMESPACE=default
+      - TASK_QUEUE=wct-case-audit-queue
+      - CASE_MANAGEMENT_URL=http://case-management-svc:8000
+      - AI_SUMMARY_URL=http://ai-summary-svc:8001
+      - EXCLUSION_SCREENING_URL=http://exclusion-screening-svc:8002
+      - NOTIFICATION_URL=http://notification-svc:8003
+      - AUDIT_TRAIL_URL=http://audit-trail-svc:8004
+      - SLA_TIMEOUT_HOURS=72
+    volumes:
+      - ../services/workflow-orchestrator/src:/app/services/workflow-orchestrator/src
+      - ../services/workflow-orchestrator/workflows:/app/services/workflow-orchestrator/workflows
+      - ../services/workflow-orchestrator/activities:/app/services/workflow-orchestrator/activities
+      - ../mock-data:/app/mock-data
+    command: ["python", "-m", "src.worker"]
+    depends_on:
+      - temporal
+      - postgres
+
 volumes:
   postgres_data:
   redpanda_data:
