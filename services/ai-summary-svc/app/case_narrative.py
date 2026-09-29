@@ -187,14 +187,15 @@ USER_PROMPT = """CASE DATA
 
 Rules for this brief:
 - When a claim has multiple lines, give each line its own sentence with its own code, billed amount, allowed amount, and diagnosis codes. Use codes, not descriptions, for diagnoses. Never merge two or more lines into one statement or use "respectively".
-- For every claim line, state the code, the billed amount, the allowed amount, and the diagnosis codes whenever CASE DATA supplies them. Do not omit the allowed amount when one is present, and do not abbreviate or group lines.
+- If a claim line has an allowed amount in CASE DATA, you must state it. Only write that a line has no allowed amount when the field is genuinely absent for that line. Check each line individually before making that statement.
 - Label every monetary amount with exactly what CASE DATA calls it: billed amount, allowed amount, reimbursement amount, overpayment variance, or questioned amount. Never substitute one label for another.
 - State each monetary amount only in the section where CASE DATA defines it. Do not attach a claim-level or validation-level amount to an individual diagnosis, code, or line.
 - Report an allowed amount only where CASE DATA supplies one. If a claim has no allowed amount, omit it rather than repeating the billed amount.
-- If CASE DATA contains a questioned amount, overpayment variance, or questioned allowed amount total, state that supplied value using its own label. Only write "No questioned amount has been determined" when CASE DATA contains no such field. Never derive one by subtracting allowed from billed.
-- If the review found the documentation meets policy, say so first in the Auditor Takeaway, before describing any provider-level pattern. Do not ask for documentation that the review did not identify as missing.
+- Never subtract allowed from billed, or perform any other arithmetic, to produce a questioned amount. Use only a questioned amount, overpayment variance, or questioned allowed amount total that appears verbatim in CASE DATA. If none appears, write "No questioned amount has been determined."
+- State only diagnosis codes present in CASE DATA. If a line or claim has no diagnoses, say so; never supply a code or description from general knowledge.
 - List only the diagnoses actually billed on the claim. A code proposed as a correction or reassignment is not a billed diagnosis — describe it as a proposed change, not as part of the claim.
-- Use the claim's service date exactly as given. Do not infer a date from any other record's admission or discharge dates.
+- When fraud ring analysis reports flagged as false, state that no fraud ring was identified, regardless of the connected entity count.
+- If the review found the documentation meets policy, say so first in the Auditor Takeaway, before describing any provider-level pattern. Do not ask for documentation that the review did not identify as missing.
 - Use the authoritative claim service date exactly as given at the top of CASE DATA. Never infer or adjust the claim's service date from any other record's admission, discharge, or evaluation dates.
 
 Write a 300-380 word case brief. Use a short plain-text heading for each
@@ -248,10 +249,16 @@ def check_numbers(summary: str, case: Dict[str, Any]) -> List[str]:
         if code not in source:
             warnings.append(f"ICD-10 code {code} is not in the case data.")
 
-    # Dollar amounts — compare numerically, ignoring formatting
+    # Dollar amounts ($1,250.00, $420) and standalone decimal numbers (e.g. 943.31)
+    found_tokens = re.findall(r"\$\s?([\d,]+(?:\.\d{2})?)", summary)
+    # Also capture standalone decimal numbers not preceded by $ and not part of a comma-separated number
+    summary_without_dollars = re.sub(r"\$\s?[\d,]+(?:\.\d{2})?", "", summary)
+    for m in re.findall(r"(?<![\d,])\b(?:\d{1,3}(?:,\d{3})*|\d+)\.\d{2}\b", summary_without_dollars):
+        found_tokens.append(m)
+
     amounts = {
         float(m.replace(",", ""))
-        for m in re.findall(r"\$\s?([\d,]+(?:\.\d{2})?)", summary)
+        for m in found_tokens
     }
     source_nums = {
         float(n) for n in re.findall(r"-?\d+\.?\d*", source)

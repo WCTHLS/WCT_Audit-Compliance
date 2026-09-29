@@ -554,3 +554,23 @@ def test_hcpcs_level_ii_code_validation():
     bad_warnings = check_numbers(invented_summary, case_005)
     assert any("E9999" in w for w in bad_warnings)
 
+
+def test_unprefixed_arithmetic_decimal_caught_by_fact_checker():
+    """Tests that ungrounded decimal amounts (like derived 943.31) are caught by check_numbers."""
+    case_data = {
+        "event": {"case_id": "CASE-2026-003", "claim_ref": "CLM-2026-9042"},
+        "clinical": {
+            "claim_lines": [
+                {"line_number": 1, "cpt_code": "99214", "billed_amount": 1750.0, "allowed_amount": 806.69}
+            ]
+        }
+    }
+    # Arithmetic difference 1750.00 - 806.69 = 943.31 not in source
+    summary_with_derived_math = (
+        "Claim was billed for $1,750.00 with allowed $806.69. "
+        "Calculated questioned amount variance of 943.31."
+    )
+    warnings = check_numbers(summary_with_derived_math, case_data)
+    assert any("943.31" in w for w in warnings)
+
+
