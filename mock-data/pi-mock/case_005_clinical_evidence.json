@@ -1,0 +1,155 @@
+{
+  "case_id": "CASE-2026-005",
+  "claim_ref": "CLM-2026-5590",
+  "claim_type": "837P",
+  "processing_status": "PARTIAL",
+  "evaluated_at": "2026-09-06T09:05:40Z",
+  "pending_documents": [
+    "Face-to-face mobility examination note",
+    "Proof of delivery",
+    "Home assessment"
+  ],
+  "patient_demographics": {
+    "patient_id": "PAT-90418",
+    "age": 78,
+    "gender": "F",
+    "insurance_type": "Medicare Fee-For-Service"
+  },
+  "facility": {
+    "npi": "1386920475",
+    "name": "Evergreen Mobility Supply LLC",
+    "type": "DME Supplier",
+    "address": "1410 N Tampa St, Tampa, FL 33602",
+    "pos_code": "12"
+  },
+  "rendering_provider": {
+    "npi": "1245093876",
+    "name": "Dr. Leonard Hask, MD",
+    "specialty": "Family Medicine",
+    "role": "Ordering physician"
+  },
+  "service_date": "2026-08-18",
+  "diagnoses": [
+    {
+      "code": "M17.0",
+      "description": "Bilateral primary osteoarthritis of knee",
+      "is_primary": true
+    },
+    {
+      "code": "R26.89",
+      "description": "Other abnormalities of gait and mobility",
+      "is_primary": false
+    },
+    {
+      "code": "M54.50",
+      "description": "Low back pain, unspecified",
+      "is_primary": false
+    }
+  ],
+  "claim_lines": [
+    {
+      "line_number": 1,
+      "cpt_code": "K0823",
+      "code_system": "HCPCS",
+      "modifier": null,
+      "description": "Power wheelchair, group 2 standard, captain's chair, patient weight capacity up to and including 300 pounds",
+      "units": 1,
+      "billed_amount": 5480.0,
+      "allowed_amount": 3912.0,
+      "diagnosis_pointer": [
+        "M17.0",
+        "R26.89"
+      ]
+    },
+    {
+      "line_number": 2,
+      "cpt_code": "E2365",
+      "code_system": "HCPCS",
+      "modifier": null,
+      "description": "Power wheelchair accessory, U1 sealed lead acid battery, each",
+      "units": 2,
+      "billed_amount": 360.0,
+      "allowed_amount": 215.0,
+      "diagnosis_pointer": [
+        "M17.0"
+      ]
+    },
+    {
+      "line_number": 3,
+      "cpt_code": "L1851",
+      "code_system": "HCPCS",
+      "modifier": "RT",
+      "description": "Knee orthosis, single upright, thigh and calf, with adjustable flexion and extension joint, off-the-shelf",
+      "units": 1,
+      "billed_amount": 390.0,
+      "allowed_amount": 270.0,
+      "diagnosis_pointer": [
+        "M17.0"
+      ]
+    },
+    {
+      "line_number": 4,
+      "cpt_code": "L1851",
+      "code_system": "HCPCS",
+      "modifier": "LT",
+      "description": "Knee orthosis, single upright, thigh and calf, with adjustable flexion and extension joint, off-the-shelf",
+      "units": 1,
+      "billed_amount": 390.0,
+      "allowed_amount": 270.0,
+      "diagnosis_pointer": [
+        "M17.0"
+      ]
+    }
+  ],
+  "medical_record_excerpt": "Standard written order dated 2026-08-02, signed by Dr. Leonard Hask, for a power wheelchair with batteries and bilateral knee orthoses. Order lists bilateral knee osteoarthritis and gait abnormality. No face-to-face mobility examination note, strength or range-of-motion findings, or assessment of ability to use a cane, walker, or manual wheelchair was included in the submitted records. Proof of delivery has not been received.",
+  "extracted_entities": [
+    {
+      "type": "ICD-10-CM",
+      "code": "M17.0",
+      "source": "order"
+    },
+    {
+      "type": "Document",
+      "text": "Standard written order dated 2026-08-02",
+      "source": "submitted_records"
+    }
+  ],
+  "medical_necessity_review": {
+    "policy_sources": [
+      "LCD L33789 - Power Mobility Devices",
+      "LCD L33318 - Knee Orthoses"
+    ],
+    "line_reviews": [
+      {
+        "line_number": 1,
+        "cpt_code": "K0823",
+        "documented_evidence_meets_policy": null,
+        "review_status": "INCONCLUSIVE",
+        "rationale": "Coverage requires a face-to-face mobility examination and documentation that the beneficiary cannot safely use a cane, walker, or manual wheelchair; these records were not received."
+      },
+      {
+        "line_number": 2,
+        "cpt_code": "E2365",
+        "documented_evidence_meets_policy": null,
+        "review_status": "INCONCLUSIVE",
+        "rationale": "Accessory coverage depends on coverage of the base power wheelchair on line 1."
+      },
+      {
+        "line_number": 3,
+        "cpt_code": "L1851",
+        "documented_evidence_meets_policy": null,
+        "review_status": "INCONCLUSIVE",
+        "rationale": "Documentation of knee instability or other qualifying condition was not received."
+      },
+      {
+        "line_number": 4,
+        "cpt_code": "L1851",
+        "documented_evidence_meets_policy": null,
+        "review_status": "INCONCLUSIVE",
+        "rationale": "Documentation of knee instability or other qualifying condition was not received."
+      }
+    ]
+  },
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

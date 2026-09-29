@@ -1,0 +1,70 @@
+{
+  "case_id": "CASE-2026-003",
+  "claim_ref": "CLM-2026-3317",
+  "model_metadata": {
+    "model_name": "WCT-FWA-XGBoost-Ensemble-v3",
+    "evaluation_timestamp": "2026-09-05T08:41:10Z",
+    "risk_score": 780,
+    "confidence_level": 0.91
+  },
+  "risk_factors": [
+    {
+      "factor_name": "LAB_COMPONENT_UNBUNDLING_RATE",
+      "feature_value": 0.41,
+      "benchmark_median": 0.03,
+      "shap_value": 0.39,
+      "value_type": "rate",
+      "description": "Provider bills individual chemistry analytes alongside a comprehensive metabolic panel on 41% of lab claims vs specialty median of 3%."
+    },
+    {
+      "factor_name": "DUPLICATE_ANALYTE_SAME_SPECIMEN",
+      "feature_value": 1.0,
+      "benchmark_median": 0.02,
+      "shap_value": 0.27,
+      "value_type": "binary",
+      "description": "This claim reports glucose, creatinine, and potassium separately on the same date as panel 80053."
+    },
+    {
+      "factor_name": "LAB_CHARGES_PER_VISIT",
+      "feature_value": 255.0,
+      "benchmark_median": 88.0,
+      "shap_value": 0.11,
+      "value_type": "currency",
+      "description": "Average billed laboratory charges per visit of $255 vs peer median of $88."
+    }
+  ],
+  "shap_waterfall": {
+    "base_value": 250,
+    "final_prediction": 780,
+    "features": [
+      {
+        "name": "Panel Component Unbundling Rate",
+        "contribution": 280
+      },
+      {
+        "name": "Same-Specimen Duplicate Analytes",
+        "contribution": 180
+      },
+      {
+        "name": "Lab Charges per Visit",
+        "contribution": 70
+      }
+    ]
+  },
+  "typology": {
+    "code": "UNBUNDLING",
+    "secondary_codes": [],
+    "description": "Separately billing component tests that are included in a panel code performed on the same specimen."
+  },
+  "fraud_ring_analysis": {
+    "flagged": false,
+    "connected_entities": 1
+  },
+  "suspension_recommendation": {
+    "action": "POST_PAYMENT_REVIEW",
+    "threshold_score": 800,
+    "requires_human_confirmation_within_hours": null
+  },
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

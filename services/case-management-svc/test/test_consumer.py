@@ -50,7 +50,7 @@ def test_process_case_001_event_fixture(db_session):
     case = process_case_created_event(db_session, payload)
 
     assert case.case_id == "CASE-2026-001"
-    assert case.claim_ref == "CLM-99214-8841"
+    assert case.claim_ref == "CLM-2026-8841"
     assert case.status == "NEW"
     assert case.risk_score == 850
     assert case.doctor_name == "Dr. Robert Vance, MD"

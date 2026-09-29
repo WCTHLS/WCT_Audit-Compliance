@@ -1,0 +1,99 @@
+{
+  "case_id": "CASE-2026-005",
+  "claim_ref": "CLM-2026-5590",
+  "model_metadata": {
+    "model_name": "WCT-FWA-XGBoost-Ensemble-v3",
+    "evaluation_timestamp": "2026-09-06T09:05:00Z",
+    "risk_score": 890,
+    "confidence_level": 0.88
+  },
+  "risk_factors": [
+    {
+      "factor_name": "REFERRAL_CONCENTRATION",
+      "feature_value": 0.72,
+      "benchmark_median": 0.08,
+      "shap_value": 0.36,
+      "value_type": "rate",
+      "description": "72% of the supplier's power wheelchair claims originate from a single ordering physician vs peer median of 8%."
+    },
+    {
+      "factor_name": "PROOF_OF_DELIVERY_MISSING_RATE",
+      "feature_value": 0.46,
+      "benchmark_median": 0.04,
+      "shap_value": 0.24,
+      "value_type": "rate",
+      "description": "Proof of delivery was not on file for 46% of the supplier's power mobility claims in the prior 90 days vs peer median of 4%."
+    },
+    {
+      "factor_name": "NEW_SUPPLIER_HIGH_VOLUME",
+      "feature_value": 118.0,
+      "benchmark_median": 22.0,
+      "shap_value": 0.15,
+      "value_type": "count",
+      "description": "Supplier enrolled 7 months ago and billed 118 power mobility devices in the last 90 days vs peer median of 22."
+    }
+  ],
+  "shap_waterfall": {
+    "base_value": 250,
+    "final_prediction": 890,
+    "features": [
+      {
+        "name": "Referral Concentration",
+        "contribution": 300
+      },
+      {
+        "name": "Missing Proof of Delivery",
+        "contribution": 200
+      },
+      {
+        "name": "New Supplier Volume",
+        "contribution": 140
+      }
+    ]
+  },
+  "typology": {
+    "code": "PHANTOM_BILLING",
+    "secondary_codes": [
+      "MEDICALLY_UNNECESSARY_SERVICES"
+    ],
+    "description": "Items billed that may not have been delivered or medically required."
+  },
+  "fraud_ring_analysis": {
+    "flagged": true,
+    "connected_entities": 4,
+    "ring_score": 0.81,
+    "entities": [
+      {
+        "entity_type": "DME Supplier",
+        "name": "Evergreen Mobility Supply LLC",
+        "npi": "1386920475"
+      },
+      {
+        "entity_type": "Ordering Physician",
+        "name": "Dr. Leonard Hask, MD",
+        "npi": "1245093876"
+      },
+      {
+        "entity_type": "Marketing Company",
+        "name": "Bayshore Patient Outreach LLC",
+        "npi": null
+      },
+      {
+        "entity_type": "Billing Company",
+        "name": "Coastline Medical Billing Inc",
+        "npi": null
+      }
+    ],
+    "shared_attributes": [
+      "Common managing owner",
+      "Shared business mailing address"
+    ]
+  },
+  "suspension_recommendation": {
+    "action": "PRE_PAYMENT_HOLD",
+    "threshold_score": 800,
+    "requires_human_confirmation_within_hours": 72
+  },
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

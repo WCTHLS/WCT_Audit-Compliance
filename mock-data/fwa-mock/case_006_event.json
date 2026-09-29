@@ -1,0 +1,21 @@
+{
+  "event_id": "5d9f3e61-2c7a-4b8e-9f14-a3e6d0c85b72",
+  "event_type": "case.created",
+  "timestamp": "2026-09-06T14:30:30Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-006",
+  "claim_ref": "CLM-2026-6078",
+  "facility_npi": "1917305842",
+  "facility_name": "Harbor Point Wellness Clinic",
+  "doctor_npi": "1053948267",
+  "doctor_name": "Dr. Samuel Okafor, PhD",
+  "patient_id": "PAT-37581",
+  "service_date": "2026-08-25",
+  "total_claim_amount": 285.0,
+  "risk_score": 940,
+  "flagged_reason": "Beneficiary identity anomaly: outpatient service billed on a date the beneficiary was admitted as an inpatient at a hospital 239 miles away.",
+  "evidence_pointers": {
+    "risk_factors": "mock-data/fwa-mock/case_006_risk_factors.json"
+  }
+}

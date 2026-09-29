@@ -1,0 +1,56 @@
+{
+  "case_id": "CASE-2026-004",
+  "provider_npi": "1639502847",
+  "provider_name": "Dr. Marcus Oyelaran, DO",
+  "specialty": "Family Medicine",
+  "region": "US-Midwest",
+  "metric_name": "E&M Level 5 (99215) Share of Established Visits (%)",
+  "provider_value": 61.0,
+  "cohort_size": 312,
+  "statistics": {
+    "mean": 16.9,
+    "std_dev": 9.8,
+    "min": 1.0,
+    "p25": 9.0,
+    "median": 15.0,
+    "p75": 22.0,
+    "p90": 31.0,
+    "p95": 38.0,
+    "p99": 52.0,
+    "max": 64.0,
+    "computed_percentile": 99.4,
+    "ratio_to_median": 4.07
+  },
+  "distribution_histogram": [
+    {
+      "bucket": "0-10%",
+      "provider_count": 92
+    },
+    {
+      "bucket": "11-20%",
+      "provider_count": 128
+    },
+    {
+      "bucket": "21-30%",
+      "provider_count": 58
+    },
+    {
+      "bucket": "31-40%",
+      "provider_count": 22
+    },
+    {
+      "bucket": "41-50%",
+      "provider_count": 7
+    },
+    {
+      "bucket": "51-60%",
+      "provider_count": 3
+    },
+    {
+      "bucket": "61-70%",
+      "provider_count": 2
+    }
+  ],
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

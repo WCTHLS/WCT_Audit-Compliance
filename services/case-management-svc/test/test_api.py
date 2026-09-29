@@ -102,7 +102,7 @@ def test_create_and_get_case(client_and_db, auditor_auth_headers):
     assert res_create.status_code == 201
     created_data = res_create.json()
     assert created_data["case_id"] == "CASE-2026-001"
-    assert created_data["claim_ref"] == "CLM-99214-8841"
+    assert created_data["claim_ref"] == "CLM-2026-8841"
     assert created_data["status"] == "NEW"
     assert created_data["risk_score"] == 850
     assert created_data["doctor_name"] == "Dr. Robert Vance, MD"

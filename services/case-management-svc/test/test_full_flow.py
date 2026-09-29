@@ -139,7 +139,7 @@ def test_full_case_001_lifecycle(full_flow_context):
 
     # Validate claim flags
     assert bundle.claim_flags is not None
-    assert bundle.claim_flags.total_flags == 2
+    assert bundle.claim_flags.total_flags == 3
     flag_codes = [flg.flag_code for flg in bundle.claim_flags.flags]
     assert "PI-EDIT-MOD25-UNBUNDLED" in flag_codes
     assert "PI-EDIT-E&M-UPCODING" in flag_codes

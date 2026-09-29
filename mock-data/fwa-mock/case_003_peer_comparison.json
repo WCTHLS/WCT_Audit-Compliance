@@ -1,0 +1,64 @@
+{
+  "case_id": "CASE-2026-003",
+  "provider_npi": "1528647391",
+  "provider_name": "Dr. Priya Raman, MD",
+  "specialty": "Internal Medicine",
+  "region": "US-Southwest",
+  "metric_name": "Lab Panel Component Unbundling Rate (%)",
+  "provider_value": 41.0,
+  "cohort_size": 216,
+  "statistics": {
+    "mean": 4.6,
+    "std_dev": 5.1,
+    "min": 0.0,
+    "p25": 1.0,
+    "median": 3.0,
+    "p75": 6.0,
+    "p90": 11.0,
+    "p95": 15.5,
+    "p99": 29.0,
+    "max": 44.0,
+    "computed_percentile": 99.5,
+    "ratio_to_median": 13.67
+  },
+  "distribution_histogram": [
+    {
+      "bucket": "0-5%",
+      "provider_count": 150
+    },
+    {
+      "bucket": "6-10%",
+      "provider_count": 40
+    },
+    {
+      "bucket": "11-15%",
+      "provider_count": 14
+    },
+    {
+      "bucket": "16-20%",
+      "provider_count": 6
+    },
+    {
+      "bucket": "21-25%",
+      "provider_count": 3
+    },
+    {
+      "bucket": "26-30%",
+      "provider_count": 1
+    },
+    {
+      "bucket": "31-35%",
+      "provider_count": 0
+    },
+    {
+      "bucket": "36-40%",
+      "provider_count": 1
+    },
+    {
+      "bucket": "41-45%",
+      "provider_count": 1
+    }
+  ],
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

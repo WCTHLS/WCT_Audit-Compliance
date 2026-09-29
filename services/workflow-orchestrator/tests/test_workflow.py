@@ -45,7 +45,7 @@ async def test_summarize_case_activity():
     """Verify summarize_case_activity generates clinical & peer comparison summaries."""
     res: SummarizeResult = await summarize_case_activity(
         case_id="CASE-2026-001",
-        claim_ref="CLM-99214-8841",
+        claim_ref="CLM-2026-8841",
         risk_score=850,
         evidence_pointers={},
     )

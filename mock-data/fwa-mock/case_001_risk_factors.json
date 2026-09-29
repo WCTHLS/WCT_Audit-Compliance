@@ -1,6 +1,6 @@
 {
   "case_id": "CASE-2026-001",
-  "claim_ref": "CLM-99214-8841",
+  "claim_ref": "CLM-2026-8841",
   "model_metadata": {
     "model_name": "WCT-FWA-XGBoost-Ensemble-v3",
     "evaluation_timestamp": "2026-09-04T09:58:30Z",
@@ -13,6 +13,7 @@
       "feature_value": 0.88,
       "benchmark_median": 0.18,
       "shap_value": 0.42,
+      "value_type": "rate",
       "description": "Provider attaches modifier 25 to 88% of all outpatient evaluation visits vs peer specialty median of 18%."
     },
     {
@@ -20,6 +21,7 @@
       "feature_value": 0.74,
       "benchmark_median": 0.15,
       "shap_value": 0.31,
+      "value_type": "rate",
       "description": "74% of provider's E&M visits are coded as Level 5 (99215) vs peer specialty median of 15%."
     },
     {
@@ -27,6 +29,7 @@
       "feature_value": 1.0,
       "benchmark_median": 0.22,
       "shap_value": 0.18,
+      "value_type": "binary",
       "description": "E&M visit and diagnostic ECG share identical primary ICD-10 code (I25.10) with no distinct secondary acute diagnosis."
     },
     {
@@ -34,6 +37,7 @@
       "feature_value": 34.0,
       "benchmark_median": 12.0,
       "shap_value": 0.09,
+      "value_type": "count",
       "description": "Provider billed 34 claims per day on the date of service, exceeding the 95th percentile threshold."
     }
   ],
@@ -41,10 +45,40 @@
     "base_value": 250,
     "final_prediction": 850,
     "features": [
-      {"name": "Mod 25 Frequency", "contribution": 260},
-      {"name": "Level 5 E&M Ratio", "contribution": 195},
-      {"name": "Unbundled ECG Match", "contribution": 110},
-      {"name": "Daily Claim Volume", "contribution": 35}
+      {
+        "name": "Mod 25 Frequency",
+        "contribution": 260
+      },
+      {
+        "name": "Level 5 E&M Ratio",
+        "contribution": 195
+      },
+      {
+        "name": "Unbundled ECG Match",
+        "contribution": 110
+      },
+      {
+        "name": "Daily Claim Volume",
+        "contribution": 35
+      }
     ]
-  }
+  },
+  "typology": {
+    "code": "UNBUNDLING",
+    "secondary_codes": [
+      "UPCODING"
+    ],
+    "description": "Separately billing an E&M service with modifier 25 alongside a same-day diagnostic service, combined with elevated Level 5 coding."
+  },
+  "fraud_ring_analysis": {
+    "flagged": false,
+    "connected_entities": 1
+  },
+  "suspension_recommendation": {
+    "action": "PRE_PAYMENT_HOLD",
+    "threshold_score": 800,
+    "requires_human_confirmation_within_hours": 72
+  },
+  "source_module": "fwa_detection",
+  "is_synthetic": true
 }

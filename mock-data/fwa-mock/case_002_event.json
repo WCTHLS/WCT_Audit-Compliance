@@ -12,11 +12,11 @@
   "doctor_name": "Dr. Arthur Pendelton, MD",
   "patient_id": "PAT-78192",
   "service_date": "2026-08-14",
-  "total_claim_amount": 28500.00,
+  "total_claim_amount": 28500.0,
   "risk_score": 920,
-  "flagged_reason": "High-risk inpatient DRG upcoding anomaly: MS-DRG 469 (Major Joint Replacement with MCC) billed instead of DRG 470 (without MCC). Secondary MCC diagnosis (I16.0 Hypertensive Urgency) lacks clinical validation and monitoring evidence in the inpatient chart.",
+  "flagged_reason": "High-risk inpatient anomaly: hospital MCC capture rate on major joint replacement far exceeds regional peers, and this claim pairs billed MS-DRG 469 (with MCC) with a 3-day length of stay and a single-occurrence MCC diagnosis.",
   "evidence_pointers": {
-    "clinical_evidence": "mock-data/fwa-mock/case_002_clinical_evidence.json",
+    "clinical_evidence": "mock-data/pi-mock/case_002_clinical_evidence.json",
     "risk_factors": "mock-data/fwa-mock/case_002_risk_factors.json",
     "peer_comparison": {
       "specialty": "Orthopedic Surgery",
@@ -27,6 +27,7 @@
       "peer_percentile": 99.1,
       "fixture_ref": "mock-data/fwa-mock/case_002_peer_comparison.json"
     },
-    "claim_flags": "mock-data/pi-mock/case_002_claim_flags.json"
+    "claim_flags": "mock-data/pi-mock/case_002_claim_flags.json",
+    "drg_validation": "mock-data/pi-mock/case_002_drg_validation.json"
   }
 }

@@ -1,21 +1,54 @@
 {
   "$defs": {
     "EvidencePointers": {
+      "additionalProperties": true,
       "description": "Pointers to the upstream/mock evidence bundles referenced by the case.\nEnables microservices to retrieve clinical records, risk models, and peer stats.",
       "properties": {
         "clinical_evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
           "description": "Path/URI to extracted clinical notes and claim lines fixture",
-          "title": "Clinical Evidence",
-          "type": "string"
+          "title": "Clinical Evidence"
         },
         "risk_factors": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
           "description": "Path/URI to SHAP risk factors and model explainability fixture",
-          "title": "Risk Factors",
-          "type": "string"
+          "title": "Risk Factors"
         },
         "peer_comparison": {
-          "$ref": "#/$defs/PeerComparisonData",
-          "description": "Peer benchmarking metrics and data reference"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PeerComparisonData"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Peer benchmarking metrics and data reference",
+          "title": "Peer Comparison"
         },
         "claim_flags": {
           "anyOf": [
@@ -29,13 +62,21 @@
           "default": null,
           "description": "Path/URI to clinical edit rule flags fixture",
           "title": "Claim Flags"
+        },
+        "drg_validation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path/URI to DRG validation fixture",
+          "title": "Drg Validation"
         }
       },
-      "required": [
-        "clinical_evidence",
-        "risk_factors",
-        "peer_comparison"
-      ],
       "title": "EvidencePointers",
       "type": "object"
     },
@@ -148,7 +189,7 @@
       "type": "string"
     },
     "claim_ref": {
-      "description": "Claim reference ID (e.g. CLM-99214-8841)",
+      "description": "Claim reference ID (e.g. CLM-2026-8841)",
       "minLength": 1,
       "title": "Claim Ref",
       "type": "string"

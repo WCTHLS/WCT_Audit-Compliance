@@ -1,0 +1,12 @@
+{
+  "case_id": "CASE-2026-004",
+  "claim_ref": "CLM-2026-4402",
+  "evaluated_at": "2026-09-05T11:20:25Z",
+  "total_flags": 0,
+  "evaluation_result": "ALL_EDITS_PASSED",
+  "questioned_line_numbers": [],
+  "questioned_allowed_amount_total": 0.0,
+  "flags": [],
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

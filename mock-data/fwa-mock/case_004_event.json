@@ -1,0 +1,32 @@
+{
+  "event_id": "b64d2f17-8a3c-4e95-a1d0-7c5e9b2f3a81",
+  "event_type": "case.created",
+  "timestamp": "2026-09-05T11:21:00Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-004",
+  "claim_ref": "CLM-2026-4402",
+  "facility_npi": "1760394821",
+  "facility_name": "Northgate Primary Care Associates",
+  "doctor_npi": "1639502847",
+  "doctor_name": "Dr. Marcus Oyelaran, DO",
+  "patient_id": "PAT-63027",
+  "service_date": "2026-08-27",
+  "total_claim_amount": 480.0,
+  "risk_score": 810,
+  "flagged_reason": "Provider-level upcoding pattern: 61% of established-patient visits billed at Level 5 vs a peer median of 15%, with a sharp 12-month increase; this claim bills 99215.",
+  "evidence_pointers": {
+    "clinical_evidence": "mock-data/pi-mock/case_004_clinical_evidence.json",
+    "risk_factors": "mock-data/fwa-mock/case_004_risk_factors.json",
+    "peer_comparison": {
+      "specialty": "Family Medicine",
+      "region": "US-Midwest",
+      "cohort_size": 312,
+      "provider_metric_value": 61.0,
+      "peer_median": 15.0,
+      "peer_percentile": 99.4,
+      "fixture_ref": "mock-data/fwa-mock/case_004_peer_comparison.json"
+    },
+    "claim_flags": "mock-data/pi-mock/case_004_claim_flags.json"
+  }
+}

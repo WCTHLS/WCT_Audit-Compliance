@@ -113,13 +113,13 @@ class EvidenceLookupClient:
     def resolve_clinical_evidence(
         self,
         pointers: Union[Dict[str, Any], BaseModel, Any],
-    ) -> ClinicalEvidenceData:
+    ) -> Optional[ClinicalEvidenceData]:
         """
         Resolves the clinical evidence bundle (EHR progress notes, diagnoses, claim lines).
         """
         pointer = self._extract_pointer_value(pointers, "clinical_evidence")
         if not pointer:
-            raise EvidenceNotFoundError("No 'clinical_evidence' pointer found in case evidence bundle.")
+            return None
 
         raw_data = self._load_json(str(pointer))
         try:
@@ -130,13 +130,13 @@ class EvidenceLookupClient:
     def resolve_risk_factors(
         self,
         pointers: Union[Dict[str, Any], BaseModel, Any],
-    ) -> RiskFactorsData:
+    ) -> Optional[RiskFactorsData]:
         """
         Resolves ML anomaly risk factors, feature attributions, and SHAP waterfall data.
         """
         pointer = self._extract_pointer_value(pointers, "risk_factors")
         if not pointer:
-            raise EvidenceNotFoundError("No 'risk_factors' pointer found in case evidence bundle.")
+            return None
 
         raw_data = self._load_json(str(pointer))
         try:

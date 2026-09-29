@@ -1,11 +1,17 @@
 {
   "case_id": "CASE-2026-001",
-  "claim_ref": "CLM-99214-8841",
+  "claim_ref": "CLM-2026-8841",
   "evaluated_at": "2026-09-04T09:59:00Z",
-  "total_flags": 2,
+  "total_flags": 3,
+  "questioned_line_numbers": [
+    1,
+    3
+  ],
+  "questioned_allowed_amount_total": 1230.0,
   "flags": [
     {
       "flag_code": "PI-EDIT-MOD25-UNBUNDLED",
+      "flag_type": "NCCI_MODIFIER",
       "severity": "HIGH",
       "line_number": 1,
       "rule_name": "CMS NCCI Policy Manual - Modifier 25 Documentation Requirement",
@@ -15,12 +21,25 @@
     },
     {
       "flag_code": "PI-EDIT-E&M-UPCODING",
+      "flag_type": "EM_LEVEL_VALIDATION",
       "severity": "MEDIUM",
       "line_number": 1,
       "rule_name": "E&M Medical Decision Making Level Mismatch",
       "regulatory_citation": "AMA CPT 2024 Evaluation and Management Guidelines, Table 2 (MDM Scoring)",
       "description": "Straightforward clinical management documented in progress note does not support high-complexity Level 5 MDM.",
       "recommended_action": "DOWNCODE_TO_99213"
+    },
+    {
+      "flag_code": "PI-EDIT-DOC-SERVICE-NOT-DOCUMENTED",
+      "flag_type": "DOCUMENTATION",
+      "severity": "HIGH",
+      "line_number": 3,
+      "rule_name": "Service Billed Without Supporting Documentation",
+      "regulatory_citation": "CMS Medicare Program Integrity Manual (Pub. 100-08), Chapter 3 - Medical Review documentation requirements",
+      "description": "CPT 93306 transthoracic echocardiogram billed; submitted record contains no order, indication, images, or interpretation for this service.",
+      "recommended_action": "DENY_LINE_ITEM_PENDING_RECORDS"
     }
-  ]
+  ],
+  "source_module": "payment_integrity",
+  "is_synthetic": true
 }

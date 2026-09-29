@@ -266,7 +266,7 @@ components:
           type: string
           minLength: 1
           title: Claim Ref
-          description: Claim reference ID (e.g. CLM-99214-8841)
+          description: Claim reference ID (e.g. CLM-2026-8841)
         risk_score:
           type: integer
           maximum: 1000.0
@@ -417,7 +417,7 @@ components:
           type: string
           minLength: 1
           title: Claim Ref
-          description: Claim reference ID (e.g. CLM-99214-8841)
+          description: Claim reference ID (e.g. CLM-2026-8841)
         risk_score:
           type: integer
           maximum: 1000.0

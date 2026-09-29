@@ -28,7 +28,7 @@ from event_contracts import CaseCreatedEvent, EvidencePointers, PeerComparisonDa
 
 event = CaseCreatedEvent(
     case_id="CASE-2026-001",
-    claim_ref="CLM-99214-8841",
+    claim_ref="CLM-2026-8841",
     facility_npi="1295847361",
     facility_name="Memorial Health System",
     doctor_npi="1093847562",
@@ -39,7 +39,7 @@ event = CaseCreatedEvent(
     risk_score=850,  # Scale: 100-1000 (>= 500 is risky)
     flagged_reason="Excessive billing of CPT 99215 with modifier 25",
     evidence_pointers=EvidencePointers(
-        clinical_evidence="mock-data/fwa-mock/case_001_clinical_evidence.json",
+        clinical_evidence="mock-data/pi-mock/case_001_clinical_evidence.json",
         risk_factors="mock-data/fwa-mock/case_001_risk_factors.json",
         peer_comparison=PeerComparisonData(
             specialty="Interventional Cardiology",
@@ -71,7 +71,7 @@ from event_contracts import (
 
 status_event = CaseStatusChangedEvent(
     case_id="CASE-2026-001",
-    claim_ref="CLM-99214-8841",
+    claim_ref="CLM-2026-8841",
     previous_status=CaseStatusEnum.READY_FOR_REVIEW,
     new_status=CaseStatusEnum.DECISION_RECORDED,
     changed_by="auditor-01",

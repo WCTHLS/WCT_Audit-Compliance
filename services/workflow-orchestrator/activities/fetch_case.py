@@ -62,7 +62,7 @@ async def fetch_case_activity(case_id: str) -> FetchCaseResult:
         activity.logger.info(f"Loaded case '{case_id}' from local mock fixture.")
         return FetchCaseResult(
             case_id=data.get("case_id", case_id),
-            claim_ref=data.get("claim_ref", "CLM-99214-8841"),
+            claim_ref=data.get("claim_ref", "CLM-2026-8841"),
             status="NEW",
             risk_score=data.get("risk_score", 850),
             flagged_reason=data.get("flagged_reason", ""),

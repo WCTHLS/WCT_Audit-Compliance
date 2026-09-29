@@ -1,0 +1,216 @@
+{
+  "case_id": "CASE-2026-003",
+  "claim_ref": "CLM-2026-3317",
+  "claim_type": "837P",
+  "processing_status": "COMPLETE",
+  "evaluated_at": "2026-09-05T08:41:40Z",
+  "patient_demographics": {
+    "patient_id": "PAT-55213",
+    "age": 58,
+    "gender": "F",
+    "insurance_type": "Medicaid Managed Care"
+  },
+  "facility": {
+    "npi": "1457392810",
+    "name": "Riverside Family Medicine Clinic",
+    "address": "2200 N Central Ave, Phoenix, AZ 85004",
+    "pos_code": "11"
+  },
+  "rendering_provider": {
+    "npi": "1528647391",
+    "name": "Dr. Priya Raman, MD",
+    "specialty": "Internal Medicine"
+  },
+  "service_date": "2026-08-21",
+  "diagnoses": [
+    {
+      "code": "E11.65",
+      "description": "Type 2 diabetes mellitus with hyperglycemia",
+      "is_primary": true
+    },
+    {
+      "code": "I10",
+      "description": "Essential (primary) hypertension",
+      "is_primary": false
+    },
+    {
+      "code": "N18.30",
+      "description": "Chronic kidney disease, stage 3 unspecified",
+      "is_primary": false
+    }
+  ],
+  "claim_lines": [
+    {
+      "line_number": 1,
+      "cpt_code": "99214",
+      "modifier": null,
+      "description": "Office or other outpatient visit for evaluation and management of an established patient, moderate complexity",
+      "units": 1,
+      "billed_amount": 210.0,
+      "allowed_amount": 145.0,
+      "diagnosis_pointer": [
+        "E11.65",
+        "I10"
+      ]
+    },
+    {
+      "line_number": 2,
+      "cpt_code": "80053",
+      "modifier": null,
+      "description": "Comprehensive metabolic panel",
+      "units": 1,
+      "billed_amount": 95.0,
+      "allowed_amount": 14.0,
+      "diagnosis_pointer": [
+        "E11.65",
+        "N18.30"
+      ]
+    },
+    {
+      "line_number": 3,
+      "cpt_code": "82947",
+      "modifier": null,
+      "description": "Glucose; quantitative, blood (except reagent strip)",
+      "units": 1,
+      "billed_amount": 35.0,
+      "allowed_amount": 5.0,
+      "diagnosis_pointer": [
+        "E11.65"
+      ]
+    },
+    {
+      "line_number": 4,
+      "cpt_code": "82565",
+      "modifier": null,
+      "description": "Creatinine; blood",
+      "units": 1,
+      "billed_amount": 35.0,
+      "allowed_amount": 6.5,
+      "diagnosis_pointer": [
+        "N18.30"
+      ]
+    },
+    {
+      "line_number": 5,
+      "cpt_code": "84132",
+      "modifier": null,
+      "description": "Potassium; serum, plasma or whole blood",
+      "units": 1,
+      "billed_amount": 30.0,
+      "allowed_amount": 6.0,
+      "diagnosis_pointer": [
+        "N18.30"
+      ]
+    },
+    {
+      "line_number": 6,
+      "cpt_code": "83036",
+      "modifier": null,
+      "description": "Hemoglobin; glycosylated (A1C)",
+      "units": 1,
+      "billed_amount": 60.0,
+      "allowed_amount": 13.0,
+      "diagnosis_pointer": [
+        "E11.65"
+      ]
+    }
+  ],
+  "lab_results": [
+    {
+      "test": "Comprehensive metabolic panel",
+      "cpt_code": "80053",
+      "specimen_id": "SPC-88213",
+      "collected": "2026-08-21T09:10:00",
+      "notable_results": {
+        "glucose_mg_dl": 212,
+        "creatinine_mg_dl": 1.6,
+        "egfr_ml_min": 48,
+        "potassium_mmol_l": 4.8
+      },
+      "other_components": "Within reference range"
+    },
+    {
+      "test": "Hemoglobin A1c",
+      "cpt_code": "83036",
+      "specimen_id": "SPC-88213",
+      "collected": "2026-08-21T09:10:00",
+      "notable_results": {
+        "hba1c_percent": 8.9
+      }
+    }
+  ],
+  "medical_record_excerpt": "58-year-old female with type 2 diabetes, hypertension, and CKD stage 3 seen for diabetes follow-up. Reports increased thirst and fatigue over 6 weeks. BP 146/88, HR 82, BMI 33.4. Labs drawn in clinic: CMP and HbA1c from a single specimen. Glucose 212 mg/dL, creatinine 1.6 mg/dL (eGFR 48), potassium 4.8 mmol/L, HbA1c 8.9%. Current medications: Metformin 1000mg twice daily, Losartan 50mg daily. Plan: add Empagliflozin 10mg daily, continue Metformin and Losartan, diabetic diet counseling, repeat labs in 3 months.",
+  "extracted_entities": [
+    {
+      "type": "ICD-10-CM",
+      "code": "E11.65",
+      "source": "claim_diagnosis"
+    },
+    {
+      "type": "LOINC",
+      "text": "Hemoglobin A1c 8.9%",
+      "source": "lab_result"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Metformin 1000mg twice daily",
+      "source": "medical_record"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Losartan 50mg daily",
+      "source": "medical_record"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Empagliflozin 10mg daily (new)",
+      "source": "medical_record"
+    }
+  ],
+  "medical_necessity_review": {
+    "policy_sources": [
+      "CMS NCCI Policy Manual for Medicare Services, Chapter X - Pathology and Laboratory Services (organ or disease oriented panels)",
+      "AMA CPT 2024 Evaluation and Management Guidelines"
+    ],
+    "line_reviews": [
+      {
+        "line_number": 1,
+        "cpt_code": "99214",
+        "documented_evidence_meets_policy": true,
+        "rationale": "Chronic illness with progression and new prescription drug management documented; supports moderate-complexity MDM."
+      },
+      {
+        "line_number": 2,
+        "cpt_code": "80053",
+        "documented_evidence_meets_policy": true,
+        "rationale": "Panel ordered and resulted for diabetes and CKD monitoring."
+      },
+      {
+        "line_number": 3,
+        "cpt_code": "82947",
+        "documented_evidence_meets_policy": false,
+        "rationale": "Glucose is a component of CMP 80053 performed on the same specimen; separate reporting is not supported."
+      },
+      {
+        "line_number": 4,
+        "cpt_code": "82565",
+        "documented_evidence_meets_policy": false,
+        "rationale": "Creatinine is a component of CMP 80053 performed on the same specimen; separate reporting is not supported."
+      },
+      {
+        "line_number": 5,
+        "cpt_code": "84132",
+        "documented_evidence_meets_policy": false,
+        "rationale": "Potassium is a component of CMP 80053 performed on the same specimen; separate reporting is not supported."
+      },
+      {
+        "line_number": 6,
+        "cpt_code": "83036",
+        "documented_evidence_meets_policy": true,
+        "rationale": "HbA1c is not a CMP component and is documented for diabetes monitoring."
+      }
+    ]
+  },
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

@@ -13,6 +13,7 @@ ENV/
 env/
 __pycache__/
 **/__pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 dist/
@@ -39,3 +40,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Evaluation & Output Artifacts
+eval-output/

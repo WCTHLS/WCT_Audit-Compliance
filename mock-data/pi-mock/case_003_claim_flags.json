@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE-2026-003",
+  "claim_ref": "CLM-2026-3317",
+  "evaluated_at": "2026-09-05T08:41:40Z",
+  "total_flags": 3,
+  "questioned_line_numbers": [
+    3,
+    4,
+    5
+  ],
+  "questioned_allowed_amount_total": 17.5,
+  "flags": [
+    {
+      "flag_code": "PI-EDIT-NCCI-PANEL-COMPONENT",
+      "flag_type": "NCCI_PTP",
+      "severity": "HIGH",
+      "line_number": 3,
+      "rule_name": "NCCI Procedure-to-Procedure Edit - Panel Component Billed Separately",
+      "regulatory_citation": "CMS NCCI Policy Manual for Medicare Services, Chapter X - Pathology and Laboratory Services",
+      "description": "CPT 82947 (glucose) billed separately on the same date and specimen as comprehensive metabolic panel 80053, which includes this analyte.",
+      "recommended_action": "DENY_LINE_ITEM"
+    },
+    {
+      "flag_code": "PI-EDIT-NCCI-PANEL-COMPONENT",
+      "flag_type": "NCCI_PTP",
+      "severity": "HIGH",
+      "line_number": 4,
+      "rule_name": "NCCI Procedure-to-Procedure Edit - Panel Component Billed Separately",
+      "regulatory_citation": "CMS NCCI Policy Manual for Medicare Services, Chapter X - Pathology and Laboratory Services",
+      "description": "CPT 82565 (creatinine) billed separately on the same date and specimen as comprehensive metabolic panel 80053, which includes this analyte.",
+      "recommended_action": "DENY_LINE_ITEM"
+    },
+    {
+      "flag_code": "PI-EDIT-NCCI-PANEL-COMPONENT",
+      "flag_type": "NCCI_PTP",
+      "severity": "HIGH",
+      "line_number": 5,
+      "rule_name": "NCCI Procedure-to-Procedure Edit - Panel Component Billed Separately",
+      "regulatory_citation": "CMS NCCI Policy Manual for Medicare Services, Chapter X - Pathology and Laboratory Services",
+      "description": "CPT 84132 (potassium) billed separately on the same date and specimen as comprehensive metabolic panel 80053, which includes this analyte.",
+      "recommended_action": "DENY_LINE_ITEM"
+    }
+  ],
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

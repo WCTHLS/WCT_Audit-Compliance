@@ -1,0 +1,60 @@
+{
+  "case_id": "CASE-2026-005",
+  "provider_npi": "1386920475",
+  "provider_name": "Evergreen Mobility Supply LLC",
+  "specialty": "DME Supplier - Power Mobility",
+  "region": "US-Southeast",
+  "metric_name": "Single-Physician Referral Concentration (%)",
+  "provider_value": 72.0,
+  "cohort_size": 96,
+  "statistics": {
+    "mean": 12.4,
+    "std_dev": 11.3,
+    "min": 1.0,
+    "p25": 5.0,
+    "median": 8.0,
+    "p75": 15.0,
+    "p90": 26.0,
+    "p95": 35.0,
+    "p99": 60.0,
+    "max": 72.0,
+    "computed_percentile": 99.0,
+    "ratio_to_median": 9.0
+  },
+  "distribution_histogram": [
+    {
+      "bucket": "0-10%",
+      "provider_count": 55
+    },
+    {
+      "bucket": "11-20%",
+      "provider_count": 24
+    },
+    {
+      "bucket": "21-30%",
+      "provider_count": 9
+    },
+    {
+      "bucket": "31-40%",
+      "provider_count": 4
+    },
+    {
+      "bucket": "41-50%",
+      "provider_count": 2
+    },
+    {
+      "bucket": "51-60%",
+      "provider_count": 1
+    },
+    {
+      "bucket": "61-70%",
+      "provider_count": 0
+    },
+    {
+      "bucket": "71-80%",
+      "provider_count": 1
+    }
+  ],
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

@@ -91,7 +91,7 @@ def test_insert_mock_case_001(db_session):
     # Query back and assert
     saved_case = db_session.execute(select(Case).where(Case.case_id == "CASE-2026-001")).scalar_one()
     assert saved_case.case_id == "CASE-2026-001"
-    assert saved_case.claim_ref == "CLM-99214-8841"
+    assert saved_case.claim_ref == "CLM-2026-8841"
     assert saved_case.risk_score == 850
     assert saved_case.doctor_name == "Dr. Robert Vance, MD"
     assert saved_case.status == "NEW"

@@ -1,6 +1,9 @@
 {
   "case_id": "CASE-2026-002",
   "claim_ref": "CLM-DRG-469-1029",
+  "claim_type": "837I",
+  "processing_status": "COMPLETE",
+  "evaluated_at": "2026-09-04T10:14:30Z",
   "patient_demographics": {
     "patient_id": "PAT-78192",
     "age": 69,
@@ -24,28 +27,32 @@
   "billed_drg": {
     "code": "469",
     "title": "Major Hip and Knee Joint Replacement or Reattachment of Lower Extremity with MCC",
-    "billed_amount": 28500.00,
+    "billed_amount": 28500.0,
     "relative_weight": 2.842
   },
   "principal_diagnosis": {
     "code": "M17.11",
-    "description": "Primary osteoarthritis, right knee"
+    "description": "Primary osteoarthritis, right knee",
+    "poa_indicator": "Y"
   },
   "secondary_diagnoses": [
     {
       "code": "I16.0",
       "description": "Hypertensive urgency (Coded as MCC)",
-      "is_mcc": true
+      "is_mcc": true,
+      "poa_indicator": "N"
     },
     {
       "code": "E11.9",
       "description": "Type 2 diabetes mellitus without complications",
-      "is_mcc": false
+      "is_mcc": false,
+      "poa_indicator": "Y"
     },
     {
       "code": "Z96.651",
       "description": "Presence of right artificial knee joint",
-      "is_mcc": false
+      "is_mcc": false,
+      "poa_indicator": "EXEMPT"
     }
   ],
   "inpatient_procedures": [
@@ -56,5 +63,40 @@
     }
   ],
   "medical_record_excerpt": "69-year-old female admitted for elective right total knee arthroplasty. Surgery performed without complication. Post-op Day 1: Patient had a single blood pressure reading of 168/92 mmHg post-anesthesia recovery. Given 1 dose of oral Amlodipine 5mg. Subsequent blood pressures normalized (130s/80s). Discharged on post-op day 3 in stable condition to home physical therapy.",
-  "auditor_clinical_notes": "Single transient blood pressure elevation post-surgery managed with routine oral medication does not meet clinical diagnostic criteria for I16.0 (Hypertensive Urgency) or justify an MCC classification. Appropriate coding is I10 (Essential Hypertension) under MS-DRG 470."
+  "extracted_entities": [
+    {
+      "type": "ICD-10-PCS",
+      "code": "0SRD0J9",
+      "source": "procedure"
+    },
+    {
+      "type": "Vital",
+      "text": "BP 168/92 mmHg (single reading, post-op day 1)",
+      "source": "medical_record"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Amlodipine 5mg oral, 1 dose",
+      "source": "medical_record"
+    }
+  ],
+  "medical_necessity_review": {
+    "policy_sources": [
+      "ICD-10-CM Official Guidelines for Coding and Reporting, Section III (Reporting Additional Diagnoses)",
+      "UHDDS secondary diagnosis reporting criteria"
+    ],
+    "admission_review": {
+      "documented_evidence_meets_policy": true,
+      "rationale": "Elective total knee arthroplasty for primary osteoarthritis of the right knee with documented inpatient stay."
+    },
+    "diagnosis_reviews": [
+      {
+        "code": "I16.0",
+        "documented_evidence_meets_policy": false,
+        "rationale": "Single elevated reading treated with one oral dose; no documented intensive monitoring, IV therapy, or end-organ evaluation to support reporting hypertensive urgency."
+      }
+    ]
+  },
+  "source_module": "payment_integrity",
+  "is_synthetic": true
 }

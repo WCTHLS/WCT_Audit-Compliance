@@ -1,0 +1,124 @@
+{
+  "case_id": "CASE-2026-004",
+  "claim_ref": "CLM-2026-4402",
+  "claim_type": "837P",
+  "processing_status": "COMPLETE",
+  "evaluated_at": "2026-09-05T11:20:25Z",
+  "patient_demographics": {
+    "patient_id": "PAT-63027",
+    "age": 71,
+    "gender": "M",
+    "insurance_type": "Medicare Advantage"
+  },
+  "facility": {
+    "npi": "1760394821",
+    "name": "Northgate Primary Care Associates",
+    "address": "480 E Broad St, Columbus, OH 43215",
+    "pos_code": "11"
+  },
+  "rendering_provider": {
+    "npi": "1639502847",
+    "name": "Dr. Marcus Oyelaran, DO",
+    "specialty": "Family Medicine"
+  },
+  "service_date": "2026-08-27",
+  "diagnoses": [
+    {
+      "code": "I50.23",
+      "description": "Acute on chronic systolic (congestive) heart failure",
+      "is_primary": true
+    },
+    {
+      "code": "E11.22",
+      "description": "Type 2 diabetes mellitus with diabetic chronic kidney disease",
+      "is_primary": false
+    },
+    {
+      "code": "N18.32",
+      "description": "Chronic kidney disease, stage 3b",
+      "is_primary": false
+    }
+  ],
+  "claim_lines": [
+    {
+      "line_number": 1,
+      "cpt_code": "99215",
+      "modifier": null,
+      "description": "Office or other outpatient visit for evaluation and management of an established patient, high complexity",
+      "units": 1,
+      "billed_amount": 395.0,
+      "allowed_amount": 265.0,
+      "diagnosis_pointer": [
+        "I50.23",
+        "E11.22",
+        "N18.32"
+      ]
+    },
+    {
+      "line_number": 2,
+      "cpt_code": "83880",
+      "modifier": null,
+      "description": "Natriuretic peptide (BNP)",
+      "units": 1,
+      "billed_amount": 85.0,
+      "allowed_amount": 38.0,
+      "diagnosis_pointer": [
+        "I50.23"
+      ]
+    }
+  ],
+  "lab_results": [
+    {
+      "test": "BNP (point of care)",
+      "cpt_code": "83880",
+      "collected": "2026-08-27T10:05:00",
+      "notable_results": {
+        "bnp_pg_ml": 1240
+      }
+    }
+  ],
+  "medical_record_excerpt": "71-year-old male with heart failure with reduced ejection fraction (EF 35%), type 2 diabetes, and CKD stage 3b presents with 4 days of worsening dyspnea on exertion, 2-pillow orthopnea, and 3 kg weight gain. BP 152/94, HR 104, SpO2 91% on room air. Bilateral 2+ pitting lower-extremity edema and bibasilar crackles. Point-of-care BNP 1240 pg/mL. Assessment: acute on chronic HFrEF exacerbation. Furosemide increased from 40mg daily to 40mg twice daily; potassium and creatinine recheck ordered in 48 hours. Emergency department evaluation recommended; patient declined after risk discussion. Shared decision for close outpatient management with daily weights, strict return precautions, and follow-up visit in 48 hours. Total time on date of service: 52 minutes.",
+  "extracted_entities": [
+    {
+      "type": "ICD-10-CM",
+      "code": "I50.23",
+      "source": "claim_diagnosis"
+    },
+    {
+      "type": "Vital",
+      "text": "SpO2 91% on room air",
+      "source": "medical_record"
+    },
+    {
+      "type": "LOINC",
+      "text": "BNP 1240 pg/mL",
+      "source": "lab_result"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Furosemide 40mg daily increased to 40mg twice daily",
+      "source": "medical_record"
+    }
+  ],
+  "medical_necessity_review": {
+    "policy_sources": [
+      "AMA CPT 2024 Evaluation and Management Guidelines, Table 2 (MDM Scoring)"
+    ],
+    "line_reviews": [
+      {
+        "line_number": 1,
+        "cpt_code": "99215",
+        "documented_evidence_meets_policy": true,
+        "rationale": "Documentation supports high-complexity MDM: acute exacerbation of chronic illness posing a threat to bodily function, prescription drug management with dose escalation, and a documented decision regarding hospitalization. 52 minutes of total time also documented."
+      },
+      {
+        "line_number": 2,
+        "cpt_code": "83880",
+        "documented_evidence_meets_policy": true,
+        "rationale": "BNP performed and resulted to evaluate suspected heart failure exacerbation."
+      }
+    ]
+  },
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

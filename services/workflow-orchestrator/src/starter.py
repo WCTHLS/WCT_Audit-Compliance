@@ -35,7 +35,7 @@ def load_mock_input(case_filename: str = "case_001_event.json") -> CaseWorkflowI
             data = json.load(f)
         return CaseWorkflowInput(
             case_id=data.get("case_id", "CASE-2026-001"),
-            claim_ref=data.get("claim_ref", "CLM-99214-8841"),
+            claim_ref=data.get("claim_ref", "CLM-2026-8841"),
             risk_score=data.get("risk_score", 850),
             flagged_reason=data.get("flagged_reason", ""),
             source_module=data.get("source_module", "fwa_detection"),
@@ -51,7 +51,7 @@ def load_mock_input(case_filename: str = "case_001_event.json") -> CaseWorkflowI
 
     return CaseWorkflowInput(
         case_id="CASE-2026-001",
-        claim_ref="CLM-99214-8841",
+        claim_ref="CLM-2026-8841",
         risk_score=850,
         flagged_reason="High risk score flag",
     )

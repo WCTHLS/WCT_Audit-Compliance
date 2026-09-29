@@ -1,0 +1,144 @@
+{
+  "case_id": "CASE-2026-001",
+  "claim_ref": "CLM-2026-8841",
+  "claim_type": "837P",
+  "processing_status": "COMPLETE",
+  "evaluated_at": "2026-09-04T09:59:00Z",
+  "patient_demographics": {
+    "patient_id": "PAT-44910",
+    "age": 62,
+    "gender": "M",
+    "insurance_type": "Medicare Advantage"
+  },
+  "facility": {
+    "npi": "1295847361",
+    "name": "Memorial Health System",
+    "address": "100 Medical Center Way, New York, NY 10001",
+    "pos_code": "11"
+  },
+  "rendering_provider": {
+    "npi": "1093847562",
+    "name": "Dr. Robert Vance, MD",
+    "specialty": "Interventional Cardiology"
+  },
+  "service_date": "2026-08-10",
+  "diagnoses": [
+    {
+      "code": "I25.10",
+      "description": "Atherosclerotic heart disease of native coronary artery without angina pectoris",
+      "is_primary": true
+    },
+    {
+      "code": "I10",
+      "description": "Essential (primary) hypertension",
+      "is_primary": false
+    },
+    {
+      "code": "E78.5",
+      "description": "Hyperlipidemia, unspecified",
+      "is_primary": false
+    }
+  ],
+  "claim_lines": [
+    {
+      "line_number": 1,
+      "cpt_code": "99215",
+      "modifier": "25",
+      "description": "Office or other outpatient visit for evaluation and management of an established patient, high complexity",
+      "units": 1,
+      "billed_amount": 420.0,
+      "allowed_amount": 280.0,
+      "diagnosis_pointer": [
+        "I25.10",
+        "I10"
+      ]
+    },
+    {
+      "line_number": 2,
+      "cpt_code": "93000",
+      "modifier": null,
+      "description": "Electrocardiogram, routine ECG with at least 12 leads; with interpretation and report",
+      "units": 1,
+      "billed_amount": 180.0,
+      "allowed_amount": 75.0,
+      "diagnosis_pointer": [
+        "I25.10"
+      ]
+    },
+    {
+      "line_number": 3,
+      "cpt_code": "93306",
+      "modifier": null,
+      "description": "Echocardiography, transthoracic, real-time with image documentation (2D), includes M-mode recording",
+      "units": 1,
+      "billed_amount": 2650.0,
+      "allowed_amount": 950.0,
+      "diagnosis_pointer": [
+        "I25.10"
+      ]
+    }
+  ],
+  "medical_record_excerpt": "Patient presented for scheduled annual cardiac follow-up and routine 12-lead ECG. Patient reports feeling well with no chest pain, shortness of breath, palpitations, or syncope. Meds reviewed: Atorvastatin 40mg, Lisinopril 10mg. BP: 128/78, Pulse: 68 bpm. ECG performed and reviewed: Normal sinus rhythm, no acute ST-T wave changes. Plan: Continue current medical regimen. Return in 12 months.",
+  "extracted_entities": [
+    {
+      "type": "ICD-10-CM",
+      "code": "I25.10",
+      "source": "claim_diagnosis"
+    },
+    {
+      "type": "CPT",
+      "code": "93000",
+      "source": "medical_record",
+      "text": "12-lead ECG"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Atorvastatin 40mg",
+      "source": "medical_record"
+    },
+    {
+      "type": "RxNorm",
+      "text": "Lisinopril 10mg",
+      "source": "medical_record"
+    },
+    {
+      "type": "Vital",
+      "text": "BP 128/78",
+      "source": "medical_record"
+    },
+    {
+      "type": "Vital",
+      "text": "Pulse 68 bpm",
+      "source": "medical_record"
+    }
+  ],
+  "medical_necessity_review": {
+    "policy_sources": [
+      "CMS NCCI Policy Manual, Chapter 1, Section E",
+      "AMA CPT 2024 Evaluation and Management Guidelines",
+      "CMS Medicare Program Integrity Manual (Pub. 100-08), Chapter 3"
+    ],
+    "line_reviews": [
+      {
+        "line_number": 1,
+        "cpt_code": "99215",
+        "documented_evidence_meets_policy": false,
+        "rationale": "Record documents a routine scheduled follow-up with no acute problem, medication change, or separately identifiable service beyond the work associated with the ECG."
+      },
+      {
+        "line_number": 2,
+        "cpt_code": "93000",
+        "documented_evidence_meets_policy": true,
+        "rationale": "ECG performed with documented interpretation (normal sinus rhythm, no acute ST-T wave changes)."
+      },
+      {
+        "line_number": 3,
+        "cpt_code": "93306",
+        "documented_evidence_meets_policy": false,
+        "rationale": "No order, clinical indication, images, or interpretation for a transthoracic echocardiogram appear in the submitted record."
+      }
+    ]
+  },
+  "source_module": "payment_integrity",
+  "is_synthetic": true
+}

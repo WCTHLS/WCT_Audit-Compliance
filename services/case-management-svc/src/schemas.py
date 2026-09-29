@@ -23,7 +23,7 @@ class CaseBase(BaseModel):
 
     case_id: str = Field(..., min_length=1, description="Unique case identifier (e.g. CASE-2026-001)")
     status: CaseStatusEnum = Field(default=CaseStatusEnum.NEW, description="Case lifecycle status")
-    claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-99214-8841)")
+    claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-2026-8841)")
     risk_score: int = Field(..., ge=100, le=1000, description="FWA ML risk score (100-1000)")
     flagged_reason: str = Field(..., min_length=1, description="Detailed reason for audit flag")
     source_module: str = Field(default="fwa_detection", description="Originating source module")

@@ -1,0 +1,70 @@
+{
+  "case_id": "CASE-2026-004",
+  "claim_ref": "CLM-2026-4402",
+  "model_metadata": {
+    "model_name": "WCT-FWA-XGBoost-Ensemble-v3",
+    "evaluation_timestamp": "2026-09-05T11:20:00Z",
+    "risk_score": 810,
+    "confidence_level": 0.83
+  },
+  "risk_factors": [
+    {
+      "factor_name": "E&M_LEVEL_5_INTENSITY",
+      "feature_value": 0.61,
+      "benchmark_median": 0.15,
+      "shap_value": 0.44,
+      "value_type": "rate",
+      "description": "61% of provider's established-patient E&M visits are coded Level 5 (99215) vs peer median of 15%."
+    },
+    {
+      "factor_name": "LEVEL_5_GROWTH_TREND",
+      "feature_value": 0.23,
+      "benchmark_median": 0.02,
+      "shap_value": 0.21,
+      "value_type": "rate_change",
+      "description": "Provider's Level 5 share increased by 23 percentage points over the prior 12 months vs a peer median change of 2 points."
+    },
+    {
+      "factor_name": "PATIENT_PANEL_ACUITY",
+      "feature_value": 1.84,
+      "benchmark_median": 1.02,
+      "shap_value": -0.08,
+      "value_type": "score",
+      "description": "Provider's patient panel has an average HCC risk score of 1.84 vs peer median of 1.02, indicating a sicker-than-average panel. This factor lowered the risk score."
+    }
+  ],
+  "shap_waterfall": {
+    "base_value": 250,
+    "final_prediction": 810,
+    "features": [
+      {
+        "name": "Level 5 E&M Share",
+        "contribution": 340
+      },
+      {
+        "name": "Level 5 Growth Trend",
+        "contribution": 280
+      },
+      {
+        "name": "Patient Panel Acuity (mitigating)",
+        "contribution": -60
+      }
+    ]
+  },
+  "typology": {
+    "code": "UPCODING",
+    "secondary_codes": [],
+    "description": "Provider-level pattern of billing higher E&M levels than peers."
+  },
+  "fraud_ring_analysis": {
+    "flagged": false,
+    "connected_entities": 1
+  },
+  "suspension_recommendation": {
+    "action": "PRE_PAYMENT_HOLD",
+    "threshold_score": 800,
+    "requires_human_confirmation_within_hours": 72
+  },
+  "source_module": "fwa_detection",
+  "is_synthetic": true
+}

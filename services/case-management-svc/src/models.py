@@ -42,7 +42,7 @@ class Case(Base):
         String(64),
         nullable=False,
         index=True,
-        doc="Upstream claim reference ID (e.g. CLM-99214-8841)",
+        doc="Upstream claim reference ID (e.g. CLM-2026-8841)",
     )
 
     # --- Audit Lifecycle & Origin ---

@@ -10,7 +10,7 @@ Contains:
 
 from datetime import date, datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 import uuid
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,12 +63,13 @@ class EvidencePointers(BaseModel):
     Pointers to the upstream/mock evidence bundles referenced by the case.
     Enables microservices to retrieve clinical records, risk models, and peer stats.
     """
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="allow")
 
-    clinical_evidence: str = Field(..., description="Path/URI to extracted clinical notes and claim lines fixture")
-    risk_factors: str = Field(..., description="Path/URI to SHAP risk factors and model explainability fixture")
-    peer_comparison: PeerComparisonData = Field(..., description="Peer benchmarking metrics and data reference")
+    clinical_evidence: Optional[str] = Field(None, description="Path/URI to extracted clinical notes and claim lines fixture")
+    risk_factors: Optional[str] = Field(None, description="Path/URI to SHAP risk factors and model explainability fixture")
+    peer_comparison: Optional[Union[PeerComparisonData, Dict[str, Any], str]] = Field(None, description="Peer benchmarking metrics and data reference")
     claim_flags: Optional[str] = Field(None, description="Path/URI to clinical edit rule flags fixture")
+    drg_validation: Optional[str] = Field(None, description="Path/URI to DRG validation fixture")
 
 
 class CaseCreatedEvent(BaseModel):
@@ -87,7 +88,7 @@ class CaseCreatedEvent(BaseModel):
 
     # Core Identifiers
     case_id: str = Field(..., min_length=1, description="Case tracking ID (e.g. CASE-2026-001)")
-    claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-99214-8841)")
+    claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-2026-8841)")
 
     # Facility / Hospital (Billing Entity)
     facility_npi: str = Field(..., min_length=10, max_length=10, description="10-digit Hospital / Facility NPI")

@@ -1,0 +1,31 @@
+{
+  "event_id": "e2a58c93-16f4-4d7b-b8e0-5f9a3c1d7e26",
+  "event_type": "case.created",
+  "timestamp": "2026-09-06T09:06:00Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-005",
+  "claim_ref": "CLM-2026-5590",
+  "facility_npi": "1386920475",
+  "facility_name": "Evergreen Mobility Supply LLC",
+  "doctor_npi": "1245093876",
+  "doctor_name": "Dr. Leonard Hask, MD",
+  "patient_id": "PAT-90418",
+  "service_date": "2026-08-18",
+  "total_claim_amount": 6620.0,
+  "risk_score": 890,
+  "flagged_reason": "Supplier-level anomaly: high concentration of power mobility orders from a single ordering physician, elevated missing proof-of-delivery rate, and linkage to a 4-entity network identified by graph analysis.",
+  "evidence_pointers": {
+    "clinical_evidence": "mock-data/pi-mock/case_005_clinical_evidence.json",
+    "risk_factors": "mock-data/fwa-mock/case_005_risk_factors.json",
+    "peer_comparison": {
+      "specialty": "DME Supplier - Power Mobility",
+      "region": "US-Southeast",
+      "cohort_size": 96,
+      "provider_metric_value": 72.0,
+      "peer_median": 8.0,
+      "peer_percentile": 99.0,
+      "fixture_ref": "mock-data/fwa-mock/case_005_peer_comparison.json"
+    }
+  }
+}

@@ -22,14 +22,43 @@
     "ratio_to_median": 4.89
   },
   "distribution_histogram": [
-    {"bucket": "0-10%", "provider_count": 42},
-    {"bucket": "11-20%", "provider_count": 68},
-    {"bucket": "21-30%", "provider_count": 41},
-    {"bucket": "31-40%", "provider_count": 18},
-    {"bucket": "41-50%", "provider_count": 8},
-    {"bucket": "51-60%", "provider_count": 4},
-    {"bucket": "61-70%", "provider_count": 1},
-    {"bucket": "71-80%", "provider_count": 1},
-    {"bucket": "81-90%", "provider_count": 1}
-  ]
+    {
+      "bucket": "0-10%",
+      "provider_count": 42
+    },
+    {
+      "bucket": "11-20%",
+      "provider_count": 68
+    },
+    {
+      "bucket": "21-30%",
+      "provider_count": 41
+    },
+    {
+      "bucket": "31-40%",
+      "provider_count": 18
+    },
+    {
+      "bucket": "41-50%",
+      "provider_count": 8
+    },
+    {
+      "bucket": "51-60%",
+      "provider_count": 4
+    },
+    {
+      "bucket": "61-70%",
+      "provider_count": 1
+    },
+    {
+      "bucket": "71-80%",
+      "provider_count": 1
+    },
+    {
+      "bucket": "81-90%",
+      "provider_count": 1
+    }
+  ],
+  "source_module": "fwa_detection",
+  "is_synthetic": true
 }

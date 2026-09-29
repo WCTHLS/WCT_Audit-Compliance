@@ -1,0 +1,32 @@
+{
+  "event_id": "3c7e91a2-4b5d-4f08-9e61-2d8a0f7b5c34",
+  "event_type": "case.created",
+  "timestamp": "2026-09-05T08:42:00Z",
+  "source_module": "fwa_detection",
+  "is_synthetic": true,
+  "case_id": "CASE-2026-003",
+  "claim_ref": "CLM-2026-3317",
+  "facility_npi": "1457392810",
+  "facility_name": "Riverside Family Medicine Clinic",
+  "doctor_npi": "1528647391",
+  "doctor_name": "Dr. Priya Raman, MD",
+  "patient_id": "PAT-55213",
+  "service_date": "2026-08-21",
+  "total_claim_amount": 465.0,
+  "risk_score": 780,
+  "flagged_reason": "Provider-level laboratory billing anomaly: individual chemistry analytes are billed alongside a comprehensive metabolic panel on 41% of lab claims vs a specialty median of 3%; this claim reports three analytes separately on the same date as panel 80053.",
+  "evidence_pointers": {
+    "clinical_evidence": "mock-data/pi-mock/case_003_clinical_evidence.json",
+    "risk_factors": "mock-data/fwa-mock/case_003_risk_factors.json",
+    "peer_comparison": {
+      "specialty": "Internal Medicine",
+      "region": "US-Southwest",
+      "cohort_size": 216,
+      "provider_metric_value": 41.0,
+      "peer_median": 3.0,
+      "peer_percentile": 99.5,
+      "fixture_ref": "mock-data/fwa-mock/case_003_peer_comparison.json"
+    },
+    "claim_flags": "mock-data/pi-mock/case_003_claim_flags.json"
+  }
+}

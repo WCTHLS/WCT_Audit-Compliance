@@ -33,7 +33,7 @@ def test_valid_case_created_event():
     )
 
     evidence = EvidencePointers(
-        clinical_evidence="mock-data/fwa-mock/case_001_clinical_evidence.json",
+        clinical_evidence="mock-data/pi-mock/case_001_clinical_evidence.json",
         risk_factors="mock-data/fwa-mock/case_001_risk_factors.json",
         peer_comparison=peer_data,
         claim_flags="mock-data/pi-mock/case_001_claim_flags.json",
@@ -41,7 +41,7 @@ def test_valid_case_created_event():
 
     event = CaseCreatedEvent(
         case_id="CASE-2026-001",
-        claim_ref="CLM-99214-8841",
+        claim_ref="CLM-2026-8841",
         facility_npi="1295847361",
         facility_name="Memorial Health System",
         doctor_npi="1093847562",
@@ -164,7 +164,7 @@ def test_valid_case_status_changed_event():
     """Test creating a valid CaseStatusChangedEvent with SLA and decision info."""
     event = CaseStatusChangedEvent(
         case_id="CASE-2026-001",
-        claim_ref="CLM-99214-8841",
+        claim_ref="CLM-2026-8841",
         previous_status=CaseStatusEnum.READY_FOR_REVIEW,
         new_status=CaseStatusEnum.DECISION_RECORDED,
         changed_by="auditor-01",
@@ -190,7 +190,7 @@ def test_appeal_flow_status_transition():
     """Test transitions into UNDER_APPEAL_REVIEW with appeal SLA timer."""
     event = CaseStatusChangedEvent(
         case_id="CASE-2026-001",
-        claim_ref="CLM-99214-8841",
+        claim_ref="CLM-2026-8841",
         previous_status=CaseStatusEnum.DISPUTED,
         new_status=CaseStatusEnum.UNDER_APPEAL_REVIEW,
         changed_by="temporal-orchestrator",
