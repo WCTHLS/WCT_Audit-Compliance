@@ -175,6 +175,19 @@ def build_case_text(case: Dict[str, Any]) -> str:
     else:
         top_lines.append("QUESTIONED AMOUNT (authoritative): none supplied")
 
+    risk = case.get("risk") or {}
+    fraud_ring = (risk.get("fraud_ring_analysis") if isinstance(risk, dict) else None) or case.get("fraud_ring_analysis") or {}
+    if isinstance(fraud_ring, dict) and fraud_ring.get("flagged") is True:
+        entities_count = fraud_ring.get("connected_entities", len(fraud_ring.get("entities", [])))
+        top_lines.append(f"FRAUD RING (authoritative): identified, {entities_count} connected entities")
+    else:
+        top_lines.append("FRAUD RING (authoritative): not identified")
+
+    if isinstance(clinical, dict) and clinical.get("medical_necessity_review"):
+        top_lines.append("MEDICAL NECESSITY REVIEW (authoritative): present")
+    else:
+        top_lines.append("MEDICAL NECESSITY REVIEW (authoritative): none in case data")
+
     labels = {
         "clinical": "CLINICAL EVIDENCE",
         "flags": "PAYMENT INTEGRITY FLAGS",
@@ -242,9 +255,10 @@ Rules for this brief:
 - Report the questioned amount exactly as given in the QUESTIONED AMOUNT line at the top of CASE DATA.
 - State only diagnosis codes present in CASE DATA. If a line or claim has no diagnoses, say so; never supply a code or description from general knowledge.
 - List only the diagnoses actually billed on the claim. A code proposed as a correction or reassignment is not a billed diagnosis — describe it as a proposed change, not as part of the claim.
-- When fraud ring analysis reports flagged as false, state that no fraud ring was identified, regardless of the connected entity count.
+- Report fraud ring status exactly as given in the FRAUD RING line at the top of CASE DATA.
 - If the review found the documentation meets policy, say so first in the Auditor Takeaway, before describing any provider-level pattern. Do not ask for documentation that the review did not identify as missing.
 - Only state that documentation meets policy if a medical necessity review appears in CASE DATA. If none appears, do not describe a review outcome.
+- If the MEDICAL NECESSITY REVIEW line says none in case data, do not describe any documentation or policy review outcome.
 - Use the authoritative claim service date exactly as given at the top of CASE DATA. Never infer or adjust the claim's service date from any other record's admission, discharge, or evaluation dates.
 
 Write a 300-380 word case brief. Use a short plain-text heading for each
