@@ -691,6 +691,98 @@ def test_assembly_section_inserted_before_auditor_takeaway_or_appended(client):
         assert "Risk and Peer Context:" in summary
 
 
+def test_assembly_section_inserted_before_bold_auditor_takeaway(client):
+    """Tests section is inserted before '**Auditor Takeaway**' and bold is stripped."""
+    from unittest.mock import AsyncMock, patch
+
+    payload = {
+        "case_id": "CASE-2026-001",
+        "claim_ref": "CLM-2026-8841",
+        "risk_score": 850,
+        "evidence_pointers": {
+            "risk_factors": "mock-data/fwa-mock/case_001_risk_factors.json",
+            "peer_comparison": "mock-data/fwa-mock/case_001_peer_comparison.json",
+            "clinical_evidence": "mock-data/pi-mock/case_001_clinical_evidence.json",
+        },
+    }
+
+    mock_llm = (
+        "**Case Overview:** Overview text.\n\n"
+        "**Auditor Takeaway**\nMain issue is modifier 25."
+    )
+    with patch("app.summarizer.llm_client.complete", new_callable=AsyncMock) as mock_c:
+        mock_c.return_value = mock_llm
+        resp = client.post("/summarize", json=payload)
+        assert resp.status_code == 200
+        summary = resp.json()["clinical_summary"]
+        assert "**" not in summary
+        assert "__" not in summary
+        assert "Risk and Peer Context:" in summary
+        assert summary.index("Risk and Peer Context:") < summary.index("Auditor Takeaway")
+
+
+def test_assembly_section_inserted_before_heading_auditor_takeaway_with_colon(client):
+    """Tests section is inserted before '## Auditor Takeaway:' and '#' is stripped."""
+    from unittest.mock import AsyncMock, patch
+
+    payload = {
+        "case_id": "CASE-2026-001",
+        "claim_ref": "CLM-2026-8841",
+        "risk_score": 850,
+        "evidence_pointers": {
+            "risk_factors": "mock-data/fwa-mock/case_001_risk_factors.json",
+            "peer_comparison": "mock-data/fwa-mock/case_001_peer_comparison.json",
+            "clinical_evidence": "mock-data/pi-mock/case_001_clinical_evidence.json",
+        },
+    }
+
+    mock_llm = (
+        "# Case Overview\nOverview text.\n\n"
+        "## Auditor Takeaway:\nMain issue is modifier 25."
+    )
+    with patch("app.summarizer.llm_client.complete", new_callable=AsyncMock) as mock_c:
+        mock_c.return_value = mock_llm
+        resp = client.post("/summarize", json=payload)
+        assert resp.status_code == 200
+        summary = resp.json()["clinical_summary"]
+        assert summary.index("Risk and Peer Context:") < summary.index("Auditor Takeaway:")
+        for line in summary.split("\n"):
+            assert not line.strip().startswith("#")
+
+
+def test_markdown_bold_and_headings_removed_from_final_clinical_summary(client):
+    """Tests markdown bold (** and __) and leading '#' are removed from final clinical_summary."""
+    from unittest.mock import AsyncMock, patch
+    from app.summarizer import normalise_markdown
+
+    raw_text = "## **Heading 2**\nThis is **bold** text and __underlined/bold__ text.\n### Subheading"
+    norm = normalise_markdown(raw_text)
+    assert "**" not in norm
+    assert "__" not in norm
+    assert "#" not in norm
+    assert "Heading 2" in norm
+    assert "bold text and underlined/bold text." in norm
+    assert "Subheading" in norm
+
+    payload = {
+        "case_id": "CASE-2026-001",
+        "claim_ref": "CLM-2026-8841",
+        "risk_score": 850,
+        "evidence_pointers": {
+            "risk_factors": "mock-data/fwa-mock/case_001_risk_factors.json",
+            "peer_comparison": "mock-data/fwa-mock/case_001_peer_comparison.json",
+            "clinical_evidence": "mock-data/pi-mock/case_001_clinical_evidence.json",
+        },
+    }
+    with patch("app.summarizer.llm_client.complete", new_callable=AsyncMock) as mock_c:
+        mock_c.return_value = raw_text
+        resp = client.post("/summarize", json=payload)
+        assert resp.status_code == 200
+        summary = resp.json()["clinical_summary"]
+        assert "**" not in summary
+        assert "__" not in summary
+
+
 def test_check_numbers_run_on_llm_text_only():
     """Tests check_numbers is run on LLM text only before assembly."""
     case_mock = {

@@ -7,6 +7,7 @@ The internals are now one LLM call over flattened case JSON.
 """
 
 import logging
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -103,6 +104,23 @@ class SummarizeResponse(BaseModel):
     validation_result: str = "PASSED"
     releasable: bool = True
     checks_executed: List[str] = Field(default_factory=list)
+
+
+def normalise_markdown(text: str) -> str:
+    """
+    Normalise markdown in LLM text:
+    - Removes '**' and '__' wrappers
+    - Removes leading '#' characters from lines
+    - Keeps the text itself unchanged
+    """
+    if not text:
+        return text
+    cleaned_lines = []
+    for line in text.split("\n"):
+        l = line.replace("**", "").replace("__", "")
+        l = re.sub(r"^\s*#+\s*", "", l)
+        cleaned_lines.append(l)
+    return "\n".join(cleaned_lines)
 
 
 class CaseSummarizer:
@@ -266,14 +284,16 @@ class CaseSummarizer:
                 warnings,
             )
 
+        # Normalise markdown in LLM text before inserting risk/peer section
+        norm_summary = normalise_markdown(summary)
+
         # Build and insert deterministic Risk and Peer Context section
         section = build_risk_peer_section(case)
         if section:
-            import re
-            lines = summary.split("\n")
+            lines = norm_summary.split("\n")
             insert_idx = None
             for idx, l in enumerate(lines):
-                cleaned = l.strip().lstrip("#").strip()
+                cleaned = l.strip()
                 if re.match(r"^Auditor\s+Takeaway\b", cleaned, re.IGNORECASE):
                     insert_idx = idx
                     break
@@ -285,9 +305,9 @@ class CaseSummarizer:
                 else:
                     assembled_summary = f"{section}\n\n{after}"
             else:
-                assembled_summary = f"{summary.rstrip()}\n\n{section}" if summary.strip() else section
+                assembled_summary = f"{norm_summary.rstrip()}\n\n{section}" if norm_summary.strip() else section
         else:
-            assembled_summary = summary
+            assembled_summary = norm_summary
 
         # Extract risk part and peer line for response fields
         peer_line = ""
