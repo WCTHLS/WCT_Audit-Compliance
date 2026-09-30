@@ -16,6 +16,7 @@ from evidence_lookup import EvidenceLookupClient, EvidenceLookupError
 from app.case_narrative import (
     SYSTEM_PROMPT,
     build_prompt,
+    build_risk_peer_section,
     check_numbers,
 )
 from llm_client import llm_client
@@ -265,6 +266,40 @@ class CaseSummarizer:
                 warnings,
             )
 
+        # Build and insert deterministic Risk and Peer Context section
+        section = build_risk_peer_section(case)
+        if section:
+            import re
+            lines = summary.split("\n")
+            insert_idx = None
+            for idx, l in enumerate(lines):
+                cleaned = l.strip().lstrip("#").strip()
+                if re.match(r"^Auditor\s+Takeaway\b", cleaned, re.IGNORECASE):
+                    insert_idx = idx
+                    break
+            if insert_idx is not None:
+                before = "\n".join(lines[:insert_idx]).rstrip()
+                after = "\n".join(lines[insert_idx:]).lstrip()
+                if before:
+                    assembled_summary = f"{before}\n\n{section}\n\n{after}"
+                else:
+                    assembled_summary = f"{section}\n\n{after}"
+            else:
+                assembled_summary = f"{summary.rstrip()}\n\n{section}" if summary.strip() else section
+        else:
+            assembled_summary = summary
+
+        # Extract risk part and peer line for response fields
+        peer_line = ""
+        risk_lines = []
+        if section:
+            for s_line in section.split("\n"):
+                if s_line.startswith("Peer comparison:"):
+                    peer_line = s_line
+                elif not s_line.startswith("Risk and Peer Context:"):
+                    risk_lines.append(s_line)
+        risk_part = "\n".join(risk_lines).strip()
+
         confidence = float(
             (case.get("risk") or {}).get("model_metadata", {}).get("confidence_level", 0.0)
         )
@@ -272,13 +307,15 @@ class CaseSummarizer:
         return SummarizeResponse(
             case_id=request.case_id,
             claim_ref=request.claim_ref,
-            clinical_summary=summary,
+            clinical_summary=assembled_summary,
             confidence_score=confidence,
             model_version=model_version,
             validation_warnings=warnings,
             validation_result="PASSED" if not warnings else f"{len(warnings)} WARNING(S)",
             releasable=not bool(warnings),
-            checks_executed=["number_check"],
+            checks_executed=["number_check", "risk_peer_deterministic"],
+            risk_factors_summary=risk_part,
+            peer_comparison_narrative=peer_line,
         )
 
 

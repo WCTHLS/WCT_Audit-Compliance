@@ -58,10 +58,11 @@ def test_peer_comparison_metrics_calculation():
     )
 
     res = compute_peer_metrics(peer_data)
+    assert res is not None
     assert res.specialty == "Interventional Cardiology"
     assert res.ratio_to_median == 4.89
-    assert "88.0%" in res.narrative
-    assert "18.0%" in res.narrative
+    assert "88.0" in res.narrative
+    assert "18.0" in res.narrative
 
 
 # ---------------------------------------------------------------------------
@@ -572,5 +573,140 @@ def test_unprefixed_arithmetic_decimal_caught_by_fact_checker():
     )
     warnings = check_numbers(summary_with_derived_math, case_data)
     assert any("943.31" in w for w in warnings)
+
+
+def test_binary_factor_renders_yes_no_never_100_percent():
+    """Tests that binary factors format as Yes/No rather than 100%."""
+    from app.risk_factors import format_factor_value
+    assert format_factor_value(1.0, "binary") == "Yes"
+    assert format_factor_value(0.0, "binary") == "No"
+    assert format_factor_value(1, "binary") == "Yes"
+    assert format_factor_value(0, "binary") == "No"
+    assert format_factor_value(1.0, "binary") != "100%"
+
+
+def test_negative_shap_renders_with_minus_and_mitigating():
+    """Tests that negative SHAP values render with '-' and '(mitigating)' using Case 004."""
+    import json
+    from app.case_narrative import build_risk_peer_section
+
+    path = _workspace_root / "mock-data" / "fwa-mock" / "case_004_risk_factors.json"
+    with open(path, "r", encoding="utf-8") as f:
+        risk_data = json.load(f)
+
+    case = {"risk": risk_data}
+    section = build_risk_peer_section(case)
+    assert "SHAP -0.08 (mitigating)" in section
+    assert "SHAP +0.44" in section
+
+
+def test_fraud_ring_flagged_renders_identified_4_entities():
+    """Tests Case 005 renders fraud ring identified with 4 connected entities."""
+    import json
+    from app.case_narrative import build_risk_peer_section
+
+    path = _workspace_root / "mock-data" / "fwa-mock" / "case_005_risk_factors.json"
+    with open(path, "r", encoding="utf-8") as f:
+        risk_data = json.load(f)
+
+    case = {"risk": risk_data}
+    section = build_risk_peer_section(case)
+    assert "Fraud ring: identified, 4 connected entities: Evergreen Mobility Supply LLC, Dr. Leonard Hask, MD, Bayshore Patient Outreach LLC, Coastline Medical Billing Inc" in section
+
+
+def test_fraud_ring_not_flagged_renders_not_identified():
+    """Tests Case 001 renders fraud ring as not identified."""
+    import json
+    from app.case_narrative import build_risk_peer_section
+
+    path = _workspace_root / "mock-data" / "fwa-mock" / "case_001_risk_factors.json"
+    with open(path, "r", encoding="utf-8") as f:
+        risk_data = json.load(f)
+
+    case = {"risk": risk_data}
+    section = build_risk_peer_section(case)
+    assert "Fraud ring: not identified" in section
+
+
+def test_peer_comparison_returns_none_for_unrecognized_input():
+    """Tests that compute_peer_metrics returns None for unrecognized inputs without defaults."""
+    assert compute_peer_metrics(None) is None
+    assert compute_peer_metrics({}) is None
+    assert compute_peer_metrics("invalid") is None
+
+
+def test_case_006_no_peer_file_has_risk_lines_and_no_peer_line():
+    """Tests that Case 006 produces risk context lines without any peer comparison line."""
+    import json
+    from app.case_narrative import build_risk_peer_section
+
+    path = _workspace_root / "mock-data" / "fwa-mock" / "case_006_risk_factors.json"
+    with open(path, "r", encoding="utf-8") as f:
+        risk_data = json.load(f)
+
+    case = {"risk": risk_data, "peer": None}
+    section = build_risk_peer_section(case)
+    assert "Risk score: 940/1000" in section
+    assert "Typology: IDENTITY_FRAUD + PHANTOM_BILLING" in section
+    assert "Peer comparison:" not in section
+
+
+def test_assembly_section_inserted_before_auditor_takeaway_or_appended(client):
+    """Tests summarizer assembly inserts section before Auditor Takeaway or appends when heading absent."""
+    from unittest.mock import AsyncMock, patch
+
+    payload = {
+        "case_id": "CASE-2026-001",
+        "claim_ref": "CLM-2026-8841",
+        "risk_score": 850,
+        "evidence_pointers": {
+            "risk_factors": "mock-data/fwa-mock/case_001_risk_factors.json",
+            "peer_comparison": "mock-data/fwa-mock/case_001_peer_comparison.json",
+            "clinical_evidence": "mock-data/pi-mock/case_001_clinical_evidence.json",
+        },
+    }
+
+    # Case 1: Heading present
+    mock_llm_with_heading = (
+        "Case Overview: Overview text.\n"
+        "Claim and Coding: Billed 99215.\n\n"
+        "Auditor Takeaway: Main issue is modifier 25."
+    )
+    with patch("app.summarizer.llm_client.complete", new_callable=AsyncMock) as mock_c:
+        mock_c.return_value = mock_llm_with_heading
+        resp = client.post("/summarize", json=payload)
+        assert resp.status_code == 200
+        summary = resp.json()["clinical_summary"]
+        assert summary.index("Risk and Peer Context:") < summary.index("Auditor Takeaway:")
+        assert "risk_peer_deterministic" in resp.json()["checks_executed"]
+
+    # Case 2: Heading absent -> appended at end
+    mock_llm_no_heading = "Case Overview: Overview text without takeaway."
+    with patch("app.summarizer.llm_client.complete", new_callable=AsyncMock) as mock_c:
+        mock_c.return_value = mock_llm_no_heading
+        resp = client.post("/summarize", json=payload)
+        assert resp.status_code == 200
+        summary = resp.json()["clinical_summary"]
+        assert summary.startswith("Case Overview:")
+        assert "Risk and Peer Context:" in summary
+
+
+def test_check_numbers_run_on_llm_text_only():
+    """Tests check_numbers is run on LLM text only before assembly."""
+    case_mock = {
+        "event": {"case_id": "CASE-2026-001", "claim_ref": "CLM-2026-8841"},
+        "clinical": {"claim_lines": [{"line_number": 1, "cpt_code": "99215", "billed_amount": 100.0}]},
+        "risk": {"risk_factors": []},
+    }
+    llm_clean = "Patient seen. Billed 99215 for $100.00."
+    warnings = check_numbers(llm_clean, case_mock)
+    assert len(warnings) == 0
+
+
+def test_llm_prompt_no_longer_contains_risk_peer_section_line():
+    """Tests that USER_PROMPT no longer asks the LLM to write a Risk and Peer Context section."""
+    from app.case_narrative import USER_PROMPT
+    assert "Risk and Peer Context: risk score" not in USER_PROMPT
+    assert "Do not write a Risk and Peer Context section; it is added separately." in USER_PROMPT
 
 

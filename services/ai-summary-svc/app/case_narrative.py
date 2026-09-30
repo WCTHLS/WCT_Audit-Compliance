@@ -226,6 +226,10 @@ def build_case_text(case: Dict[str, Any]) -> str:
 
 
 
+from app.risk_factors import format_factor_value, format_shap_value
+from app.peer_comparison import compute_peer_metrics
+
+
 # ---------------------------------------------------------------------------
 # 2. Prompts
 # ---------------------------------------------------------------------------
@@ -255,7 +259,7 @@ Rules for this brief:
 - Report the questioned amount exactly as given in the QUESTIONED AMOUNT line at the top of CASE DATA.
 - State only diagnosis codes present in CASE DATA. If a line or claim has no diagnoses, say so; never supply a code or description from general knowledge.
 - List only the diagnoses actually billed on the claim. A code proposed as a correction or reassignment is not a billed diagnosis — describe it as a proposed change, not as part of the claim.
-- Report fraud ring status exactly as given in the FRAUD RING line at the top of CASE DATA.
+- Do not write a Risk and Peer Context section; it is added separately. In the Auditor Takeaway you may mention the risk score in one clause, but do not list risk factors or peer statistics.
 - If the review found the documentation meets policy, say so first in the Auditor Takeaway, before describing any provider-level pattern. Do not ask for documentation that the review did not identify as missing.
 - Only state that documentation meets policy if a medical necessity review appears in CASE DATA. If none appears, do not describe a review outcome.
 - If the MEDICAL NECESSITY REVIEW line says none in case data, do not describe any documentation or policy review outcome.
@@ -270,12 +274,126 @@ Case Overview: patient, claim, provider, facility, dates, billed and allowed amo
 Clinical Course: reason for care, key findings, vitals, results, medications with doses, treatment, outcome.
 Claim and Coding: each billed item with its code, amounts, and linked diagnoses.
 Review Findings: flags and review results, with citations and recommended actions.
-Risk and Peer Context: risk score, typology, key risk factors, peer comparison, fraud ring findings.
 Auditor Takeaway: the main issues to review, missing documentation, and any questioned amount supplied in CASE DATA."""
 
 
 def build_prompt(case: Dict[str, Any]) -> str:
     return USER_PROMPT.format(case_text=build_case_text(case))
+
+
+def build_risk_peer_section(case: Dict[str, Any]) -> str:
+    """
+    Builds deterministic Risk and Peer Context section from case JSON data.
+    Returns plain text without markdown.
+    If there is no risk AND no peer data, returns "".
+    """
+    risk = case.get("risk") or {}
+    peer = case.get("peer") or {}
+    event = case.get("event") or {}
+
+    has_risk = bool(risk and (risk.get("risk_factors") or risk.get("model_metadata") or risk.get("typology")))
+    has_peer = bool(peer)
+
+    if not has_risk and not has_peer:
+        return ""
+
+    lines: List[str] = ["Risk and Peer Context:"]
+
+    metadata = risk.get("model_metadata") or {}
+    risk_score = metadata.get("risk_score")
+    if risk_score is None:
+        risk_score = risk.get("risk_score", event.get("risk_score"))
+
+    model_name = metadata.get("model_name")
+    confidence = metadata.get("confidence_level")
+    if confidence is not None:
+        try:
+            confidence_str = f"{float(confidence):.0%}"
+        except (ValueError, TypeError):
+            confidence_str = str(confidence)
+    else:
+        confidence_str = None
+
+    meta_parts = []
+    if model_name:
+        meta_parts.append(f"model {model_name}")
+    if confidence_str:
+        meta_parts.append(f"confidence {confidence_str}")
+    meta_str = f" ({', '.join(meta_parts)})" if meta_parts else ""
+
+    if risk_score is not None:
+        lines.append(f"Risk score: {risk_score}/1000{meta_str}")
+
+    typology = risk.get("typology") or {}
+    t_code = typology.get("code")
+    t_desc = typology.get("description")
+    sec_codes = typology.get("secondary_codes") or []
+    if t_code:
+        sec_str = f" + {' + '.join(sec_codes)}" if sec_codes else ""
+        desc_str = f" - {t_desc}" if t_desc else ""
+        lines.append(f"Typology: {t_code}{sec_str}{desc_str}")
+
+    raw_factors = risk.get("risk_factors") or []
+    if raw_factors:
+        factors = []
+        for item in raw_factors:
+            if isinstance(item, dict):
+                factors.append(item)
+            elif hasattr(item, "model_dump"):
+                factors.append(item.model_dump())
+        factors.sort(key=lambda x: float(x.get("shap_value", 0.0)), reverse=True)
+
+        lines.append("Key risk factors (ranked by contribution):")
+        for idx, f in enumerate(factors, 1):
+            desc = f.get("description", "")
+            shap_val = f.get("shap_value")
+            feat_val = f.get("feature_value")
+            bench_med = f.get("benchmark_median")
+            v_type = f.get("value_type")
+
+            val_str = format_factor_value(feat_val, v_type)
+            bench_str = format_factor_value(bench_med, v_type)
+            shap_str = format_shap_value(shap_val)
+
+            parts = []
+            if val_str:
+                parts.append(f"value {val_str}")
+            if bench_str:
+                parts.append(f"benchmark {bench_str}")
+            if shap_str:
+                parts.append(f"SHAP {shap_str}")
+
+            paren = f" ({', '.join(parts)})" if parts else ""
+            lines.append(f"  {idx}. {desc}{paren}")
+
+    fraud_ring = risk.get("fraud_ring_analysis") or case.get("fraud_ring_analysis")
+    if fraud_ring and isinstance(fraud_ring, dict) and fraud_ring.get("flagged") is True:
+        entities = fraud_ring.get("entities") or []
+        entity_names = [e.get("name") for e in entities if isinstance(e, dict) and e.get("name")]
+        n_conn = fraud_ring.get("connected_entities", len(entities))
+        if entity_names:
+            lines.append(f"Fraud ring: identified, {n_conn} connected entities: {', '.join(entity_names)}")
+        else:
+            lines.append(f"Fraud ring: identified, {n_conn} connected entities")
+    elif fraud_ring is not None or has_risk:
+        lines.append("Fraud ring: not identified")
+
+    susp = risk.get("suspension_recommendation")
+    if susp and isinstance(susp, dict):
+        action = susp.get("action")
+        hours = susp.get("requires_human_confirmation_within_hours")
+        if action:
+            if hours:
+                lines.append(f"Payment action: {action} (human confirmation within {hours} hours)")
+            else:
+                lines.append(f"Payment action: {action}")
+
+    if has_peer:
+        peer_res = compute_peer_metrics(peer)
+        if peer_res and peer_res.narrative:
+            lines.append(peer_res.narrative)
+
+    return "\n".join(lines)
 
 
 

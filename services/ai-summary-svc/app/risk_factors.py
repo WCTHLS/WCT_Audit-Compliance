@@ -6,31 +6,88 @@ human-readable investigator summaries without LLM hallucination.
 
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
-from evidence_lookup.models import RiskFactorsData, RiskFactorItem, SHAPWaterfallData
+from evidence_lookup.models import RiskFactorsData
 
 
 class ParsedRiskSummary(BaseModel):
     """Structured breakdown of ML risk score and SHAP attributions."""
-    risk_score: int
-    confidence_level: float
-    model_name: str
-    top_factor_name: str
-    top_shap_value: float
-    formatted_summary: str
+    risk_score: Optional[int] = None
+    confidence_level: Optional[float] = None
+    model_name: Optional[str] = None
+    top_factor_name: Optional[str] = None
+    top_shap_value: Optional[float] = None
+    formatted_summary: str = ""
     bullet_points: List[str] = Field(default_factory=list)
+
+
+def format_factor_value(val: Any, value_type: Optional[str] = None) -> str:
+    """Format factor value based on value_type."""
+    if val is None:
+        return ""
+    vt = (value_type or "").lower().strip()
+    if vt == "rate":
+        if isinstance(val, (int, float)):
+            return f"{val * 100:.1f}%"
+    elif vt == "rate_change":
+        if isinstance(val, (int, float)):
+            sign = "+" if val > 0 else ""
+            return f"{sign}{val * 100:.1f} pts"
+    elif vt == "binary":
+        if val in (1, 1.0, "1", "1.0", True):
+            return "Yes"
+        elif val in (0, 0.0, "0", "0.0", False):
+            return "No"
+        return str(val)
+    elif vt == "count":
+        if isinstance(val, (int, float)):
+            return str(int(val))
+    elif vt == "days":
+        if isinstance(val, (int, float)):
+            n_str = str(int(val)) if isinstance(val, float) and val.is_integer() else str(val)
+            return f"{n_str} days"
+    elif vt == "currency":
+        if isinstance(val, (int, float)):
+            n_str = str(int(val)) if isinstance(val, float) and val.is_integer() else f"{val:,.2f}"
+            return f"${n_str}"
+    elif vt == "distance_miles":
+        if isinstance(val, (int, float)):
+            n_str = str(int(val)) if isinstance(val, float) and val.is_integer() else str(val)
+            return f"{n_str} miles"
+    elif vt == "score":
+        return str(val)
+
+    # missing/other -> number as given (NEVER guess percent from 0-1 range)
+    return str(val)
+
+
+def format_shap_value(shap: Any) -> str:
+    """Format SHAP value preserving sign and adding (mitigating) for negatives."""
+    if shap is None:
+        return ""
+    try:
+        val = float(shap)
+    except (ValueError, TypeError):
+        return str(shap)
+
+    if val < 0:
+        return f"{val:.2f} (mitigating)"
+    elif val > 0:
+        return f"+{val:.2f}"
+    else:
+        return "+0.00"
 
 
 def format_risk_factors_summary(
     risk_data: Union[RiskFactorsData, Dict[str, Any], Any],
-    max_factors: int = 4,
+    max_factors: int = 10,
 ) -> ParsedRiskSummary:
     """
     Parses RiskFactorsData and formats top contributors ranked by SHAP value.
-
-    :param risk_data: RiskFactorsData instance or dict.
-    :param max_factors: Maximum number of top features to include.
-    :return: ParsedRiskSummary model with formatted string and metadata.
+    Omits missing fields instead of inventing hardcoded defaults.
     """
+    if not risk_data:
+        return ParsedRiskSummary()
+
     # Extract metadata
     if hasattr(risk_data, "model_metadata"):
         metadata = getattr(risk_data, "model_metadata", {}) or {}
@@ -39,9 +96,18 @@ def format_risk_factors_summary(
     else:
         metadata = {}
 
-    risk_score = metadata.get("risk_score", 850)
-    confidence = float(metadata.get("confidence_level", 0.94))
-    model_name = metadata.get("model_name", "WCT-FWA-Ensemble-v3")
+    risk_score = metadata.get("risk_score")
+    if risk_score is None and isinstance(risk_data, dict):
+        risk_score = risk_data.get("risk_score")
+
+    confidence = metadata.get("confidence_level")
+    if confidence is not None:
+        try:
+            confidence = float(confidence)
+        except (ValueError, TypeError):
+            confidence = None
+
+    model_name = metadata.get("model_name")
 
     # Extract risk factors list
     raw_factors: List[Any] = []
@@ -59,43 +125,58 @@ def format_risk_factors_summary(
         else:
             factors.append({
                 "factor_name": getattr(item, "factor_name", "UNKNOWN"),
-                "feature_value": getattr(item, "feature_value", 0.0),
-                "benchmark_median": getattr(item, "benchmark_median", 0.0),
+                "feature_value": getattr(item, "feature_value", None),
+                "benchmark_median": getattr(item, "benchmark_median", None),
                 "shap_value": getattr(item, "shap_value", 0.0),
+                "value_type": getattr(item, "value_type", None),
                 "description": getattr(item, "description", ""),
             })
 
     # Sort factors by SHAP value descending
     factors.sort(key=lambda x: float(x.get("shap_value", 0.0)), reverse=True)
 
-    top_name = factors[0].get("factor_name", "UNKNOWN") if factors else "ANOMALY_SCORE"
-    top_shap = float(factors[0].get("shap_value", 0.0)) if factors else 0.0
+    top_name = factors[0].get("factor_name") if factors else None
+    top_shap = float(factors[0].get("shap_value", 0.0)) if factors else None
 
     bullets: List[str] = []
     for idx, f in enumerate(factors[:max_factors], 1):
-        fname = f.get("factor_name", "ANOMALY")
-        shap_val = float(f.get("shap_value", 0.0))
         desc = f.get("description", "")
+        shap_val = f.get("shap_value")
         feat_val = f.get("feature_value")
         bench_med = f.get("benchmark_median")
+        v_type = f.get("value_type")
 
-        # Format percentages if 0 <= val <= 1
-        if isinstance(feat_val, (int, float)) and isinstance(bench_med, (int, float)) and 0.0 <= feat_val <= 1.0:
-            val_str = f"Observed: {feat_val:.0%} vs Peer Median: {bench_med:.0%}"
-        elif isinstance(feat_val, (int, float)) and isinstance(bench_med, (int, float)):
-            val_str = f"Observed: {feat_val} vs Benchmark: {bench_med}"
-        else:
-            val_str = ""
+        val_str = format_factor_value(feat_val, v_type)
+        bench_str = format_factor_value(bench_med, v_type)
+        shap_str = format_shap_value(shap_val)
 
-        detail = f"{desc} ({val_str})" if val_str and desc else (desc or val_str)
-        bullets.append(f"{idx}. [{fname}] SHAP +{shap_val:.2f}: {detail}")
+        parts = []
+        if val_str:
+            parts.append(f"value {val_str}")
+        if bench_str:
+            parts.append(f"benchmark {bench_str}")
+        if shap_str:
+            parts.append(f"SHAP {shap_str}")
+
+        paren = f" ({', '.join(parts)})" if parts else ""
+        bullets.append(f"  {idx}. {desc}{paren}")
 
     # Build primary summary text
-    header = f"FWA Risk Score: {risk_score}/1000 (Model: {model_name}, Confidence: {confidence:.0%})."
+    meta_parts = []
+    if model_name:
+        meta_parts.append(f"model {model_name}")
+    if confidence is not None:
+        meta_parts.append(f"confidence {confidence:.0%}")
+    meta_str = f" ({', '.join(meta_parts)})" if meta_parts else ""
+
+    summary_lines = []
+    if risk_score is not None:
+        summary_lines.append(f"Risk score: {risk_score}/1000{meta_str}")
     if bullets:
-        summary_text = f"{header}\nKey Risk Drivers:\n" + "\n".join(bullets)
-    else:
-        summary_text = f"{header} Anomaly detected based on billing pattern thresholds."
+        summary_lines.append("Key risk factors (ranked by contribution):")
+        summary_lines.extend(bullets)
+
+    summary_text = "\n".join(summary_lines)
 
     return ParsedRiskSummary(
         risk_score=risk_score,
