@@ -147,7 +147,7 @@ def format_risk_factors_summary(
         v_type = f.get("value_type")
 
         val_str = format_factor_value(feat_val, v_type)
-        bench_str = format_factor_value(bench_med, v_type)
+        bench_str = format_factor_value(bench_med, v_type) if (v_type or "").lower().strip() != "binary" else ""
         shap_str = format_shap_value(shap_val)
 
         parts = []

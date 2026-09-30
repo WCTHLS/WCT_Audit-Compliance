@@ -104,6 +104,17 @@ def compute_peer_metrics(
     if ratio is None and provider_val is not None and peer_med is not None and peer_med > 0:
         ratio = round(provider_val / peer_med, 2)
 
+    is_percent_metric = False
+    m_name = (metric_name or "").strip()
+    if m_name.endswith("(%)"):
+        is_percent_metric = True
+        m_name = m_name[:-3].strip()
+
+    suffix = "%" if is_percent_metric else ""
+
+    pv_str = f"{provider_val}{suffix}" if provider_val is not None else ""
+    med_str = f" vs peer median {peer_med}{suffix}" if peer_med is not None else ""
+
     # Build bracket statistics: (<ratio_to_median>x median, <computed_percentile> percentile, p95 <p95>, p99 <p99>, max <max>)
     bracket_parts = []
     if ratio is not None:
@@ -111,11 +122,11 @@ def compute_peer_metrics(
     if percentile is not None:
         bracket_parts.append(f"{percentile} percentile")
     if p95 is not None:
-        bracket_parts.append(f"p95 {p95}")
+        bracket_parts.append(f"p95 {p95}{suffix}")
     if p99 is not None:
-        bracket_parts.append(f"p99 {p99}")
+        bracket_parts.append(f"p99 {p99}{suffix}")
     if max_val is not None:
-        bracket_parts.append(f"max {max_val}")
+        bracket_parts.append(f"max {max_val}{suffix}")
 
     bracket_str = f" ({', '.join(bracket_parts)})" if bracket_parts else ""
 
@@ -126,10 +137,6 @@ def compute_peer_metrics(
         across_parts.append(specialty)
     across_str = f" across {' '.join(across_parts)} peers" if across_parts else ""
     in_region_str = f" in {region}" if region else ""
-
-    m_name = metric_name or ""
-    pv_str = f"{provider_val}" if provider_val is not None else ""
-    med_str = f" vs peer median {peer_med}" if peer_med is not None else ""
 
     prefix = f"{m_name} {pv_str}".strip()
     narrative = f"Peer comparison: {prefix}{med_str}{bracket_str}{across_str}{in_region_str}.".strip()
