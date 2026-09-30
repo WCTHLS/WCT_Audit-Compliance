@@ -21,7 +21,7 @@ class Settings:
     LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "120.0"))
 
     # Foundry Local Settings
-    FOUNDRY_BASE_URL: str = os.getenv("FOUNDRY_BASE_URL", "http://127.0.0.1:51840/v1")
+    FOUNDRY_BASE_URL: str = os.getenv("FOUNDRY_BASE_URL", "http://127.0.0.1:51664/v1")
     FOUNDRY_MODEL: str = os.getenv("FOUNDRY_MODEL", "qwen2.5-7b-instruct-openvino-gpu")
 
     # Context & Token Limits

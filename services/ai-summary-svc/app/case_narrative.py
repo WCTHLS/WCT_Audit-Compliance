@@ -70,6 +70,39 @@ def flatten(obj: Any, indent: int = 0, parent_key: str = "") -> List[str]:
             if parent_key == "statistics" and key not in PEER_STATS_ALLOWED_KEYS:
                 continue
             label = key.replace("_", " ")
+
+            if key == "claim_lines" and isinstance(val, list):
+                lines.append(f"{pad}{label}:")
+                line_pad = "  " * (indent + 1)
+                for item in val:
+                    if isinstance(item, dict):
+                        ln = item.get("line_number", "")
+                        code = item.get("cpt_code") or item.get("code") or ""
+                        mod = item.get("modifier")
+                        code_sys = item.get("code_system")
+                        if not code_sys:
+                            code_sys = "HCPCS" if code and str(code)[0].isalpha() else "CPT"
+                        code_str = f"{code_sys} {code}" + (f"-{mod}" if mod else "")
+
+                        parts = [f"Line {ln}"]
+                        if code:
+                            parts.append(code_str)
+                        if item.get("billed_amount") is not None:
+                            parts.append(f"billed {float(item['billed_amount']):.2f}")
+                        if item.get("allowed_amount") is not None:
+                            parts.append(f"allowed {float(item['allowed_amount']):.2f}")
+
+                        dx = item.get("diagnosis_pointer") or item.get("diagnoses") or []
+                        if isinstance(dx, list) and dx:
+                            parts.append(f"dx {', '.join(str(d) for d in dx)}")
+                        elif dx:
+                            parts.append(f"dx {dx}")
+
+                        lines.append(f"{line_pad}{' | '.join(parts)}")
+                    else:
+                        lines.append(f"{line_pad}- {item}")
+                continue
+
             if isinstance(val, (dict, list)):
                 if not val:
                     continue
@@ -109,9 +142,12 @@ def build_case_text(case: Dict[str, Any]) -> str:
             "total_allowed": sum(float(l.get("allowed_amount") or 0.0) for l in lines),
         }
 
-    # Authoritative dates block
+    # Authoritative dates & questioned amount block
     clinical = case.get("clinical") or {}
     event = case.get("event") or {}
+    flags = case.get("flags") or {}
+    drg = case.get("drg_validation") or {}
+    drg_comp = drg.get("drg_comparison") if isinstance(drg, dict) else {}
 
     auth_service_date = (
         clinical.get("service_date")
@@ -121,12 +157,23 @@ def build_case_text(case: Dict[str, Any]) -> str:
     admission_date = clinical.get("admission_date")
     discharge_date = clinical.get("discharge_date")
 
-    date_lines: List[str] = []
+    top_lines: List[str] = []
     if auth_service_date:
-        date_lines.append(f"CLAIM SERVICE DATE (authoritative): {auth_service_date}")
+        top_lines.append(f"CLAIM SERVICE DATE (authoritative): {auth_service_date}")
     if admission_date and discharge_date:
-        date_lines.append(f"CLAIM ADMISSION DATE (authoritative): {admission_date}")
-        date_lines.append(f"CLAIM DISCHARGE DATE (authoritative): {discharge_date}")
+        top_lines.append(f"CLAIM ADMISSION DATE (authoritative): {admission_date}")
+        top_lines.append(f"CLAIM DISCHARGE DATE (authoritative): {discharge_date}")
+
+    if isinstance(flags, dict) and flags.get("questioned_allowed_amount_total") is not None:
+        top_lines.append(f"QUESTIONED AMOUNT (authoritative): {flags['questioned_allowed_amount_total']} (questioned_allowed_amount_total)")
+    elif isinstance(flags, dict) and flags.get("questioned_amount_total") is not None:
+        top_lines.append(f"QUESTIONED AMOUNT (authoritative): {flags['questioned_amount_total']} (questioned_amount_total)")
+    elif isinstance(drg_comp, dict) and drg_comp.get("overpayment_variance") is not None:
+        top_lines.append(f"QUESTIONED AMOUNT (authoritative): {drg_comp['overpayment_variance']} (drg overpayment_variance)")
+    elif isinstance(drg, dict) and drg.get("overpayment_variance") is not None:
+        top_lines.append(f"QUESTIONED AMOUNT (authoritative): {drg['overpayment_variance']} (drg overpayment_variance)")
+    else:
+        top_lines.append("QUESTIONED AMOUNT (authoritative): none supplied")
 
     labels = {
         "clinical": "CLINICAL EVIDENCE",
@@ -137,8 +184,8 @@ def build_case_text(case: Dict[str, Any]) -> str:
         "drg_validation": "DRG VALIDATION",
     }
     out: List[str] = []
-    if date_lines:
-        out.extend(date_lines)
+    if top_lines:
+        out.extend(top_lines)
         out.append("")
 
     for key in ("event", "clinical", "flags", "risk", "peer", "drg_validation"):
@@ -192,10 +239,12 @@ Rules for this brief:
 - State each monetary amount only in the section where CASE DATA defines it. Do not attach a claim-level or validation-level amount to an individual diagnosis, code, or line.
 - Report an allowed amount only where CASE DATA supplies one. If a claim has no allowed amount, omit it rather than repeating the billed amount.
 - Never subtract allowed from billed, or perform any other arithmetic, to produce a questioned amount. Use only a questioned amount, overpayment variance, or questioned allowed amount total that appears verbatim in CASE DATA. If none appears, write "No questioned amount has been determined."
+- Report the questioned amount exactly as given in the QUESTIONED AMOUNT line at the top of CASE DATA.
 - State only diagnosis codes present in CASE DATA. If a line or claim has no diagnoses, say so; never supply a code or description from general knowledge.
 - List only the diagnoses actually billed on the claim. A code proposed as a correction or reassignment is not a billed diagnosis — describe it as a proposed change, not as part of the claim.
 - When fraud ring analysis reports flagged as false, state that no fraud ring was identified, regardless of the connected entity count.
 - If the review found the documentation meets policy, say so first in the Auditor Takeaway, before describing any provider-level pattern. Do not ask for documentation that the review did not identify as missing.
+- Only state that documentation meets policy if a medical necessity review appears in CASE DATA. If none appears, do not describe a review outcome.
 - Use the authoritative claim service date exactly as given at the top of CASE DATA. Never infer or adjust the claim's service date from any other record's admission, discharge, or evaluation dates.
 
 Write a 300-380 word case brief. Use a short plain-text heading for each
