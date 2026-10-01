@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wct-exclusion-screening-svc"
+version = "0.1.0"
+description = "Exclusion Screening Service - Screens healthcare providers and entities against OIG LEIE exclusions"
+readme = "README.md"
+authors = [{ name = "WCT Engineering Team" }]
+requires-python = ">=3.10"
+dependencies = [
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.9",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
+    "httpx>=0.27.0",
+    "pyyaml>=6.0",
+    "wct-evidence-lookup",
+    "wct-auth-middleware",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

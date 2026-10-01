@@ -43,3 +43,8 @@ Thumbs.db
 
 # Evaluation & Output Artifacts
 eval-output/
+
+# Exclusion Screening Real Data
+**/seed/UPDATED.csv
+UPDATED.csv
+*.csv.gz

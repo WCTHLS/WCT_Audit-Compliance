@@ -170,6 +170,34 @@ services:
       timeout: 5s
       retries: 5
 
+  exclusion-screening-svc:
+    build:
+      context: ..
+      dockerfile: services/exclusion-screening-svc/Dockerfile
+    container_name: audit-exclusion-screening-svc
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=change-me
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-audit_compliance}
+      - SERVICE_PORT=8002
+    volumes:
+      - ../services/exclusion-screening-svc/src:/app/services/exclusion-screening-svc/src
+      - ../services/exclusion-screening-svc/seed:/app/services/exclusion-screening-svc/seed
+      - ../mock-data:/app/mock-data
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   workflow-orchestrator:
     build:
       context: ..
@@ -195,6 +223,7 @@ services:
     depends_on:
       - temporal
       - postgres
+      - exclusion-screening-svc
 
 volumes:
   postgres_data:

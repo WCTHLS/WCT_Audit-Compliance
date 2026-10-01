@@ -30,7 +30,7 @@ from activities import (
 )
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_case_activity():
     """Verify fetch_case_activity retrieves case details & evidence pointers."""
     res: FetchCaseResult = await fetch_case_activity("CASE-2026-001")
@@ -40,7 +40,7 @@ async def test_fetch_case_activity():
     assert "clinical_evidence" in res.evidence_pointers
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_summarize_case_activity():
     """Verify summarize_case_activity generates clinical & peer comparison summaries."""
     res: SummarizeResult = await summarize_case_activity(
@@ -55,7 +55,7 @@ async def test_summarize_case_activity():
     assert res.confidence_score >= 0.90
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_screen_exclusions_activity():
     """Verify screening flags excluded providers vs clear providers."""
     clean_res: ScreeningResult = await screen_exclusions_activity(
@@ -71,7 +71,7 @@ async def test_screen_exclusions_activity():
     assert excl_res.is_excluded is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_workflow_decision_signal_success():
     """
     Test CaseAuditWorkflow where human auditor submits a decision signal
@@ -129,7 +129,7 @@ async def test_workflow_decision_signal_success():
         assert "recorded successfully" in result.message
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_workflow_sla_breach_timeout():
     """
     Test CaseAuditWorkflow where NO auditor decision is submitted within 72h.
