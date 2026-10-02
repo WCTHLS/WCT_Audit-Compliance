@@ -10,7 +10,7 @@ import httpx
 from temporalio import activity
 
 from src.config import settings
-from activities.params import FetchCaseResult
+from activities.params import FetchCaseResult, get_system_auth_headers
 
 logger = logging.getLogger("activity.fetch_case")
 
@@ -26,7 +26,7 @@ async def fetch_case_activity(case_id: str) -> FetchCaseResult:
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(url)
+            resp = await client.get(url, headers=get_system_auth_headers())
             if resp.status_code == 200:
                 data = resp.json()
                 activity.logger.info(f"Successfully retrieved case '{case_id}' from API.")

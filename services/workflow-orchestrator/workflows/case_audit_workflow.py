@@ -10,6 +10,7 @@ Coordinates the full lifecycle of an audit case:
 6. Triggers escalation alert if SLA expires without a decision
 """
 
+import asyncio
 from datetime import timedelta
 from typing import Any, Dict, Optional
 from temporalio import workflow
@@ -122,9 +123,9 @@ class CaseAuditWorkflow:
         )
 
         # -------------------------------------------------------------
-        # Phase 2: Generate AI Summary & Deterministic Peer Comparison
+        # Phase 2 & 3: Run AI Summary & Exclusion Screening in Parallel
         # -------------------------------------------------------------
-        summary_res: SummarizeResult = await workflow.execute_activity(
+        summary_future = workflow.execute_activity(
             summarize_case_activity,
             args=[
                 self.case_id,
@@ -132,16 +133,11 @@ class CaseAuditWorkflow:
                 case_details.risk_score,
                 case_details.evidence_pointers,
             ],
-            start_to_close_timeout=timedelta(seconds=15),
+            start_to_close_timeout=timedelta(seconds=90),
             retry_policy=standard_retry,
         )
-        self.clinical_summary = summary_res.clinical_summary
-        self.peer_comparison_narrative = summary_res.peer_comparison_narrative
 
-        # -------------------------------------------------------------
-        # Phase 3: Screen Physician against OIG LEIE Exclusions
-        # -------------------------------------------------------------
-        screen_res: ScreeningResult = await workflow.execute_activity(
+        screen_future = workflow.execute_activity(
             screen_exclusions_activity,
             args=[
                 case_details.doctor_npi or "1093847562",
@@ -152,9 +148,14 @@ class CaseAuditWorkflow:
                 case_details.facility_name,
                 case_details.evidence_pointers,
             ],
-            start_to_close_timeout=timedelta(seconds=10),
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=standard_retry,
         )
+
+        summary_res, screen_res = await asyncio.gather(summary_future, screen_future)
+
+        self.clinical_summary = summary_res.clinical_summary
+        self.peer_comparison_narrative = summary_res.peer_comparison_narrative
         self.is_excluded = screen_res.is_excluded
 
         # -------------------------------------------------------------

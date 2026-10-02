@@ -134,3 +134,37 @@ def patch_case(
 
     updated_case = crud.update_case(db, db_case, case_in)
     return CaseRead.model_validate(updated_case)
+
+
+@router.post(
+    "/{case_id}/summary",
+    status_code=status.HTTP_201_CREATED,
+    summary="Store AI Clinical Summary",
+    description="Persists a generated AI clinical summary into the dedicated ai_summaries table.",
+)
+def save_case_summary(
+    case_id: str,
+    summary_in: dict,
+    db: Session = Depends(get_db),
+    current_user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Stores AI clinical summary in database."""
+    db_case = crud.get_case_by_id(db, case_id)
+    if not db_case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case '{case_id}' not found.",
+        )
+
+    summary_in["case_id"] = case_id
+    if "claim_ref" not in summary_in:
+        summary_in["claim_ref"] = db_case.claim_ref
+
+    db_summary = crud.create_ai_summary(db, summary_in)
+    return {
+        "status": "saved",
+        "id": db_summary.id,
+        "case_id": db_summary.case_id,
+        "claim_ref": db_summary.claim_ref,
+        "created_at": db_summary.created_at.isoformat(),
+    }

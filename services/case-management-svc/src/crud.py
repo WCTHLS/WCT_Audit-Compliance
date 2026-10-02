@@ -139,3 +139,22 @@ def update_case(db: Session, db_case: Case, case_in: CaseUpdate) -> Case:
     db.commit()
     db.refresh(db_case)
     return db_case
+
+
+def create_ai_summary(db: Session, summary_data: dict) -> Any:
+    """Creates and stores a generated AI clinical summary linked to a case."""
+    from src.models import AISummary
+
+    db_summary = AISummary(
+        case_id=summary_data["case_id"],
+        claim_ref=summary_data["claim_ref"],
+        clinical_summary=summary_data.get("clinical_summary", ""),
+        risk_factors_summary=summary_data.get("risk_factors_summary"),
+        peer_comparison_narrative=summary_data.get("peer_comparison_narrative"),
+        confidence_score=float(summary_data.get("confidence_score", 0.94)),
+        model_version=summary_data.get("model_version", "foundry:qwen2.5-7b-instruct-openvino-gpu"),
+    )
+    db.add(db_summary)
+    db.commit()
+    db.refresh(db_summary)
+    return db_summary

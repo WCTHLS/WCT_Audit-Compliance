@@ -51,6 +51,8 @@ class EvidenceLookupClient:
         """
         if base_dir:
             self.base_dir = Path(base_dir).resolve()
+        elif Path("/app/mock-data").exists():
+            self.base_dir = Path("/app/mock-data").resolve()
         else:
             # Auto-detect workspace root mock-data directory
             curr = Path(__file__).resolve()
@@ -61,7 +63,7 @@ class EvidenceLookupClient:
     def _resolve_path(self, pointer: str) -> Path:
         """
         Resolves a pointer string to an absolute file path on disk.
-        Searches base_dir, workspace root, and CWD.
+        Searches base_dir, workspace root, container /app paths, and CWD.
         """
         p = Path(pointer)
         if p.is_absolute() and p.exists() and p.is_file():
@@ -72,10 +74,15 @@ class EvidenceLookupClient:
         if candidate1.exists() and candidate1.is_file():
             return candidate1
 
-        # Check relative to base_dir's parent (workspace root)
+        # Check relative to base_dir's parent (workspace root or /app)
         candidate2 = (self.base_dir.parent / pointer).resolve()
         if candidate2.exists() and candidate2.is_file():
             return candidate2
+
+        # Check relative to /app container root
+        candidate_app = (Path("/app") / pointer).resolve()
+        if candidate_app.exists() and candidate_app.is_file():
+            return candidate_app
 
         # Check relative to current working directory
         candidate3 = Path.cwd() / pointer
@@ -84,7 +91,7 @@ class EvidenceLookupClient:
 
         raise EvidenceNotFoundError(
             f"Evidence file could not be found for pointer: '{pointer}'. "
-            f"Searched paths: [{candidate1}, {candidate2}, {candidate3}]"
+            f"Searched paths: [{candidate1}, {candidate2}, {candidate_app}, {candidate3}]"
         )
 
     def _load_json(self, pointer: str) -> Dict[str, Any]:

@@ -39,6 +39,23 @@ class CaseBase(BaseModel):
     evidence_pointers: EvidencePointers | Dict[str, Any] = Field(
         ..., description="Pointers to clinical, risk factors, and peer comparison evidence bundles"
     )
+    exclusion_flag: bool = Field(default=False, description="Flag indicating if provider/facility was matched against exclusion list")
+    exclusion_result: Optional[Dict[str, Any]] = Field(None, description="Detailed multi-entity exclusion screening payload")
+
+
+class AISummaryRead(BaseModel):
+    """Schema for reading an AI summary record."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    case_id: str
+    claim_ref: str
+    clinical_summary: str
+    risk_factors_summary: Optional[str] = None
+    peer_comparison_narrative: Optional[str] = None
+    confidence_score: float = 0.95
+    model_version: str = "ollama:llama3.2"
+    created_at: datetime
 
 
 class CaseCreate(CaseBase):
@@ -66,6 +83,8 @@ class CaseUpdate(BaseModel):
     sla_breached: Optional[bool] = Field(None, description="Flag indicating SLA deadline breach")
     sla_due_at: Optional[datetime] = Field(None, description="Adjusted SLA deadline timestamp")
     sla_type: Optional[SlaTypeEnum] = Field(None, description="Active SLA timer type")
+    exclusion_flag: Optional[bool] = Field(None, description="Updated exclusion flag")
+    exclusion_result: Optional[Dict[str, Any]] = Field(None, description="Updated exclusion screening result payload")
 
     # Auditor Decision Recording
     decision: Optional[AuditDecisionEnum] = Field(None, description="Auditor decision: UPHOLD, REVERSE, REQUEST_INFO")
@@ -87,6 +106,8 @@ class CaseRead(CaseBase):
     regulatory_basis: Optional[str] = Field(None, description="Regulatory citation")
     decided_by: Optional[str] = Field(None, description="User ID of deciding auditor")
     decided_at: Optional[datetime] = Field(None, description="Decision timestamp")
+
+    summaries: List[AISummaryRead] = Field(default_factory=list, description="Associated AI summaries and version history")
 
     created_at: datetime = Field(..., description="Case creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")

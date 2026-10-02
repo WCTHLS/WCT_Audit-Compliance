@@ -43,9 +43,6 @@ class LLMClient:
 
     async def check_health(self) -> Dict[str, Any]:
         """Checks if the configured LLM provider is reachable."""
-        if self.provider == "mock":
-            return {"provider": "mock", "status": "available", "model": "mock"}
-
         if self.provider == "foundry":
             try:
                 async with httpx.AsyncClient(timeout=3.0) as client:
@@ -131,7 +128,8 @@ class LLMClient:
                 "max_tokens": max_tokens,
             }
             try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                client_timeout = httpx.Timeout(self.timeout, connect=3.0)
+                async with httpx.AsyncClient(timeout=client_timeout) as client:
                     resp = await client.post(endpoint, json=payload)
                     if resp.status_code == 200:
                         data = resp.json()
@@ -172,7 +170,8 @@ class LLMClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            client_timeout = httpx.Timeout(self.timeout, connect=3.0)
+            async with httpx.AsyncClient(timeout=client_timeout) as client:
                 resp = await client.post(native_endpoint, json=payload)
                 if resp.status_code == 200:
                     data = resp.json()

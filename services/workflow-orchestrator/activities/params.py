@@ -2,9 +2,43 @@
 Data models and parameters for Temporal Activities in CaseAuditWorkflow.
 """
 
+import base64
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import hashlib
+import hmac
+import json
+import os
+import time
 from typing import Any, Dict, List, Optional
+
+
+def get_system_auth_headers() -> Dict[str, str]:
+    """Generates standard JWT Bearer headers for inter-service communication."""
+    secret = os.getenv("JWT_SECRET_KEY", "wct-audit-compliance-dev-secret-key-2026")
+    header = {"alg": "HS256", "typ": "JWT"}
+    payload = {
+        "sub": "workflow-orchestrator",
+        "role": "AUDITOR",
+        "name": "System Orchestrator",
+        "email": "orchestrator@wct-health.com",
+        "iat": int(time.time()),
+        "exp": int(time.time() + 86400 * 365),
+    }
+
+    def b64url(data: bytes) -> str:
+        return base64.urlsafe_b64encode(data).decode("utf-8").rstrip("=")
+
+    hdr_b64 = b64url(json.dumps(header).encode("utf-8"))
+    pay_b64 = b64url(json.dumps(payload).encode("utf-8"))
+    signing_input = f"{hdr_b64}.{pay_b64}".encode("utf-8")
+    sig = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
+    sig_b64 = b64url(sig)
+    token = f"{hdr_b64}.{pay_b64}.{sig_b64}"
+    return {
+        "Authorization": f"Bearer {token}",
+        "X-Internal-Service": "workflow-orchestrator",
+    }
 
 
 @dataclass

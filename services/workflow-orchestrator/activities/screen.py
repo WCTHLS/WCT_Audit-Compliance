@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 import httpx
 from temporalio import activity
 
-from activities.params import ScreeningResult
+from activities.params import ScreeningResult, get_system_auth_headers
 
 EXCLUSION_SCREENING_URL = os.getenv("EXCLUSION_SCREENING_URL", "http://localhost:8002")
 
@@ -62,6 +62,26 @@ async def screen_exclusions_activity(
                     )
 
                 details = "; ".join(details_list) if details_list else f"Provider '{doctor_name}' (NPI: {doctor_npi}) has NO active exclusions on OIG LEIE."
+
+                # Update case record in case-management-svc
+                try:
+                    cms_url = f"{os.getenv('CASE_MANAGEMENT_URL', 'http://case-management-svc:8000')}/cases/{case_id}"
+                    patch_resp = await client.patch(
+                        cms_url,
+                        json={
+                            "exclusion_flag": is_excluded,
+                            "exclusion_result": data,
+                            "status": "READY_FOR_REVIEW",
+                        },
+                        headers=get_system_auth_headers(),
+                    )
+                    if patch_resp.status_code in (200, 204):
+                        activity.logger.info(f"Updated case '{case_id}' in CMS with exclusion results (flag={is_excluded}, status=READY_FOR_REVIEW).")
+                    else:
+                        activity.logger.warning(f"Failed to patch case '{case_id}' in CMS (HTTP {patch_resp.status_code}): {patch_resp.text}")
+                except Exception as patch_err:
+                    activity.logger.warning(f"Could not patch case in CMS: {patch_err}")
+
                 return ScreeningResult(
                     doctor_npi=doctor_npi,
                     doctor_name=doctor_name,

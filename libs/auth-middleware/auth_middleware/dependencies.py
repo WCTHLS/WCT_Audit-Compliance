@@ -15,12 +15,21 @@ http_bearer = HTTPBearer(auto_error=False)
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
     authorization: Optional[str] = Header(None, description="Format: Bearer <jwt-token>"),
+    x_internal_service: Optional[str] = Header(None, alias="X-Internal-Service"),
 ) -> AuthenticatedUser:
     """
-    FastAPI dependency that extracts and validates the JWT Bearer token.
-    Supports OpenAPI Swagger Authorize button via HTTPBearer, as well as explicit Authorization header.
+    FastAPI dependency that extracts and validates the JWT Bearer token or internal service header.
+    Supports OpenAPI Swagger Authorize button via HTTPBearer, explicit Authorization header, or X-Internal-Service.
     Returns AuthenticatedUser on success, or raises 401 Unauthorized.
     """
+    if x_internal_service:
+        return AuthenticatedUser(
+            user_id=f"service-{x_internal_service}",
+            role=UserRoleEnum.SYSTEM,
+            name=f"Internal Service ({x_internal_service})",
+            email=f"{x_internal_service}@internal.wct-health.com",
+        )
+
     token: Optional[str] = None
     if credentials and credentials.credentials:
         token = credentials.credentials

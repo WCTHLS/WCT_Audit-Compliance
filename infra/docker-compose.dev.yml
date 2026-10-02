@@ -152,6 +152,8 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - KAFKA_TOPIC_CASE_CREATED=case.created
       - KAFKA_CONSUMER_GROUP=wct-case-management-group
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
       - SERVICE_PORT=8000
     volumes:
       - ../services/case-management-svc/src:/app/services/case-management-svc/src
@@ -164,8 +166,37 @@ services:
         condition: service_healthy
       redpanda:
         condition: service_healthy
+      temporal:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-summary-svc:
+    build:
+      context: ..
+      dockerfile: services/ai-summary-svc/Dockerfile
+    container_name: audit-ai-summary-svc
+    environment:
+      - SERVICE_PORT=8001
+      - LLM_PROVIDER=${LLM_PROVIDER:-foundry}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:50514/v1}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-audit_compliance}
+    volumes:
+      - ../services/ai-summary-svc:/app/services/ai-summary-svc
+      - ../mock-data:/app/mock-data
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -176,8 +207,8 @@ services:
       dockerfile: services/exclusion-screening-svc/Dockerfile
     container_name: audit-exclusion-screening-svc
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=change-me
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DB=${POSTGRES_DB:-audit_compliance}
@@ -223,6 +254,8 @@ services:
     depends_on:
       - temporal
       - postgres
+      - case-management-svc
+      - ai-summary-svc
       - exclusion-screening-svc
 
 volumes:

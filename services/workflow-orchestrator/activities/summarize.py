@@ -9,7 +9,7 @@ import httpx
 from temporalio import activity
 
 from src.config import settings
-from activities.params import SummarizeResult
+from activities.params import SummarizeResult, get_system_auth_headers
 
 
 @activity.defn(name="summarize_case_activity")
@@ -36,51 +36,43 @@ async def summarize_case_activity(
         "evidence_pointers": evidence_pointers or {},
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=35.0) as client:
-            resp = await client.post(url, json=payload)
-            if resp.status_code == 200:
-                data = resp.json()
-                activity.logger.info(f"AI Summary successfully returned from service for case '{case_id}'.")
-                return SummarizeResult(
-                    case_id=data.get("case_id", case_id),
-                    clinical_summary=data.get("clinical_summary", ""),
-                    risk_factors_summary=data.get("risk_factors_summary", ""),
-                    peer_comparison_narrative=data.get("peer_comparison_narrative", ""),
-                    confidence_score=float(data.get("confidence_score", 0.94)),
-                    model_version=data.get("model_version", "ollama:llama3.2"),
-                )
-            else:
-                activity.logger.warning(
-                    f"AI Summary Service returned status {resp.status_code}: {resp.text}. Using fallback."
-                )
-    except Exception as exc:
-        activity.logger.warning(
-            f"AI Summary Service unreachable at '{url}' ({exc}). Using deterministic fallback."
+    headers = get_system_auth_headers()
+
+    async with httpx.AsyncClient(timeout=90.0) as client:
+        resp = await client.post(url, json=payload)
+        if resp.status_code != 200:
+            err_msg = f"AI Summary Service returned status {resp.status_code}: {resp.text}"
+            activity.logger.error(err_msg)
+            raise RuntimeError(err_msg)
+
+        data = resp.json()
+        activity.logger.info(f"AI Summary successfully returned from service for case '{case_id}'.")
+
+        # Persist summary to PostgreSQL via Case Management Service
+        cms_url = f"{settings.CASE_MANAGEMENT_URL}/cases/{case_id}/summary"
+        summary_payload = {
+            "claim_ref": claim_ref,
+            "clinical_summary": data.get("clinical_summary", ""),
+            "risk_factors_summary": data.get("risk_factors_summary", ""),
+            "peer_comparison_narrative": data.get("peer_comparison_narrative", ""),
+            "confidence_score": float(data.get("confidence_score", 0.94)),
+            "model_version": data.get("model_version", "foundry:qwen2.5-7b-instruct-openvino-gpu"),
+        }
+        
+        db_resp = await client.post(cms_url, json=summary_payload, headers=headers)
+        if db_resp.status_code in (200, 201):
+            activity.logger.info(f"AI Summary successfully persisted to database for case '{case_id}'.")
+        else:
+            activity.logger.warning(
+                f"Failed to persist summary to CMS database (HTTP {db_resp.status_code}): {db_resp.text}"
+            )
+
+        return SummarizeResult(
+            case_id=data.get("case_id", case_id),
+            clinical_summary=data.get("clinical_summary", ""),
+            risk_factors_summary=data.get("risk_factors_summary", ""),
+            peer_comparison_narrative=data.get("peer_comparison_narrative", ""),
+            confidence_score=float(data.get("confidence_score", 0.94)),
+            model_version=data.get("model_version", "foundry:qwen2.5-7b-instruct-openvino-gpu"),
         )
-
-    # Deterministic fallback if service is temporarily unreachable during startup
-    clinical_summary = (
-        f"Case {case_id} (Claim {claim_ref}): Routine cardiology evaluation (CPT 99215) "
-        f"billed with Modifier 25 alongside diagnostic testing. Progress notes document an established "
-        f"patient without evidence of a separately identifiable high-complexity medical evaluation."
-    )
-
-    risk_factors_summary = (
-        f"FWA Risk Score: {risk_score}/1000. Key driver: Modifier 25 utilization anomaly (SHAP +0.42)."
-    )
-
-    peer_comparison_narrative = (
-        "Provider bills CPT 99215 + Mod 25 on 88.0% of visits (Peer Median: 18.0%, "
-        "98.2th Percentile in regional specialty cohort)."
-    )
-
-    return SummarizeResult(
-        case_id=case_id,
-        clinical_summary=clinical_summary,
-        risk_factors_summary=risk_factors_summary,
-        peer_comparison_narrative=peer_comparison_narrative,
-        confidence_score=0.94,
-        model_version="fallback:deterministic-v1",
-    )
 

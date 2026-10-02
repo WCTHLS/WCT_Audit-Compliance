@@ -9,6 +9,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 from temporalio.client import Client
+from temporalio.common import WorkflowIDReusePolicy
 from temporalio.exceptions import WorkflowAlreadyStartedError
 
 from src.config import settings
@@ -90,6 +91,7 @@ async def start_case_workflow_async(case: Any) -> Optional[str]:
             input_payload,
             id=workflow_id,
             task_queue=settings.TEMPORAL_TASK_QUEUE,
+            id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
         )
 
         logger.info(f"Successfully triggered Temporal workflow for case '{case_id}' (Run ID: {handle.result_run_id}).")

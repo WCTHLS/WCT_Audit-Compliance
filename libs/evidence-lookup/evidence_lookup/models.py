@@ -107,6 +107,9 @@ class RiskFactorsData(BaseModel):
     model_metadata: Dict[str, Any] = Field(default_factory=dict)
     risk_factors: List[RiskFactorItem] = Field(default_factory=list)
     shap_waterfall: Optional[SHAPWaterfallData] = None
+    typology: Optional[Dict[str, Any]] = None
+    fraud_ring_analysis: Optional[Dict[str, Any]] = None
+    suspension_recommendation: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------

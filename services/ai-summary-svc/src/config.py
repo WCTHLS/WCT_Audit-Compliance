@@ -18,10 +18,10 @@ class Settings:
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "foundry")  # "foundry" | "ollama" | "mock" | "openai"
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
-    LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "120.0"))
+    LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60.0"))
 
     # Foundry Local Settings
-    FOUNDRY_BASE_URL: str = os.getenv("FOUNDRY_BASE_URL", "http://127.0.0.1:51664/v1")
+    FOUNDRY_BASE_URL: str = os.getenv("FOUNDRY_BASE_URL", "http://127.0.0.1:50514/v1")
     FOUNDRY_MODEL: str = os.getenv("FOUNDRY_MODEL", "qwen2.5-7b-instruct-openvino-gpu")
 
     # Context & Token Limits
