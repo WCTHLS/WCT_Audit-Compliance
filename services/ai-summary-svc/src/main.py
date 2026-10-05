@@ -5,7 +5,7 @@ and clinical summarization endpoints for WCT Module 5.
 """
 
 from typing import Any, Dict
-from fastapi import FastAPI, status
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings
@@ -92,7 +92,13 @@ async def summarize_case_endpoint(request: SummarizeRequest) -> SummarizeRespons
     Generates a structured clinical audit summary, risk factor breakdown,
     and peer comparison narrative from case evidence pointers.
     """
-    return await summarizer_engine.summarize_case(request)
+    response = await summarizer_engine.summarize_case(request)
+    if response.validation_result == "LLM_ERROR":
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM generation failed: {', '.join(response.validation_warnings)}",
+        )
+    return response
 
 
 if __name__ == "__main__":

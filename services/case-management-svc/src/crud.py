@@ -141,6 +141,15 @@ def update_case(db: Session, db_case: Case, case_in: CaseUpdate) -> Case:
     return db_case
 
 
+import re
+
+def _clean_plain_text(val: Optional[str]) -> Optional[str]:
+    """Ensures text stored in database columns uses plain \n line breaks and no HTML <br> tags."""
+    if val is None:
+        return None
+    return re.sub(r"<\s*br\s*/?>", "\n", str(val), flags=re.IGNORECASE)
+
+
 def create_ai_summary(db: Session, summary_data: dict) -> Any:
     """Creates and stores a generated AI clinical summary linked to a case."""
     from src.models import AISummary
@@ -148,9 +157,9 @@ def create_ai_summary(db: Session, summary_data: dict) -> Any:
     db_summary = AISummary(
         case_id=summary_data["case_id"],
         claim_ref=summary_data["claim_ref"],
-        clinical_summary=summary_data.get("clinical_summary", ""),
-        risk_factors_summary=summary_data.get("risk_factors_summary"),
-        peer_comparison_narrative=summary_data.get("peer_comparison_narrative"),
+        clinical_summary=_clean_plain_text(summary_data.get("clinical_summary", "")) or "",
+        risk_factors_summary=_clean_plain_text(summary_data.get("risk_factors_summary")),
+        peer_comparison_narrative=_clean_plain_text(summary_data.get("peer_comparison_narrative")),
         confidence_score=float(summary_data.get("confidence_score", 0.94)),
         model_version=summary_data.get("model_version", "foundry:qwen2.5-7b-instruct-openvino-gpu"),
     )

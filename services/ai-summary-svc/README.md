@@ -37,15 +37,15 @@ case.created event (from FWA)
 
 ### 2. Configuration & Environment Variables
 
-|      Variable       |                Default           |                                   Description                                                                   |
-|        ---          |                   ---            |                                      ---                                                                        |
-| LLM_PROVIDER        | foundry                          | LLM backend: foundry or ollama                                                                                  |
-| FOUNDRY_BASE_URL    | set from `foundry server status` | OpenAI-compatible endpoint for Foundry Local. The default in `config.py` is a placeholder and is usually stale. |
-| FOUNDRY_MODEL       | qwen2.5-7b-instruct-openvino-gpu | Loaded model identifier                                                                                         |
-| MODEL_CONTEXT_LIMIT | 32768                            | Maximum context length of the loaded model (the NPU variant is limited to 4224)                                 |
-| OUTPUT_TOKENS       | 1000                             | Max tokens generated per summary (650 caused truncation)                                                        |
-| OLLAMA_BASE_URL     | http://127.0.0.1:11434           | Endpoint for Ollama                                                                                             |
-| OLLAMA_MODEL        | qwen2.5:3b                       | Model name when running under Ollama                                                                            |
+|      Variable       |    Default         |             Description |       
+|        ---          |    ---            |        ---          |
+| LLM_PROVIDER        | foundry           | LLM backend: foundry or ollama |
+| FOUNDRY_BASE_URL    | set from `foundry server status`| OpenAI-compatible endpoint for Foundry Local. The default in `config.py` is a placeholder and is usually stale. |
+| FOUNDRY_MODEL       | qwen2.5-7b-instruct-openvino-gpu| Loaded model identifier |
+| MODEL_CONTEXT_LIMIT | 32768  | Maximum context length of the loaded model (the NPU variant is limited to 4224) |
+| OUTPUT_TOKENS       | 1000    | Max tokens generated per summary (650 caused truncation) |
+| OLLAMA_BASE_URL     | http://127.0.0.1:11434  | Endpoint for Ollama |
+| OLLAMA_MODEL        | qwen2.5:3b              | Model name when running under Ollama|
 
 **Dynamic Port Notice:** Foundry Local assigns a new port each time it restarts (observed: 51664, 51840, 63904, 55343). After every restart, run `foundry server status` and set `FOUNDRY_BASE_URL` in your `.env` or container environment to match.
 
@@ -62,17 +62,20 @@ case.created event (from FWA)
 #### B. Single-Prompt Summarization
 - For very complex inpatient cases with multi-week hospital stays, 50+ claim lines, or dense surgical records, single-prompt generation may encounter token limits or lose nuance on secondary lines. Multi-stage map-reduce or hierarchical claim-line evaluation should be introduced if claim line count exceeds 30 lines.
 
-#### C. Grounding Check Scope
-- `check_numbers()` blocks any code or amount not found in the case data.
+##### C. Grounding Check Scope
+- check_numbers() blocks any code or amount not found in the case data.
 - It does **not** catch a real value placed in the wrong slot, or a real value left out. Observed in the final POC run:
   - CASE-2026-003: lines 3-5 reported as "no allowed amount" (actual: $5.00, $6.50, $6.00).
-  - CASE-2026-004: "questioned amount of $0.00" in the overview vs "no questioned amount has been determined" in the takeaway.
+  - CASE-2026-006: service date reported as 2026-08-23 (the inpatient admission date of the conflicting record); actual service date is 2026-08-25. The authoritative header has the correct date, but the LLM text does not always follow it.
+  - CASE-2026-002: $14,000.00 (DRG 470 reimbursement) described as the "allowed amount", and the admission date described as "billed on".
 
-#### D. Residual Wording Errors (7B Local Model)
-None of these invent a number or reverse a key finding; the correct fact appears elsewhere in the same summary.
-- CASE-2026-002: says the claim "was reassigned to MS-DRG 470"; the data only recommends reassignment.
-- CASE-2026-004: adds "no further action is required", which is not in the data.
-- CASE-2026-006: says "the documentation does not support the billed service" although no medical necessity review exists for this case.
+##### D. Residual Wording Errors (7B Local Model)
+Outputs are reproducible: two full runs (Test 1 and Test 2) produced identical text for all six cases, so these errors are stable and do not vary run to run.
+- **Code labels:** CASE-2026-002 calls ICD-10-PCS 0SRD0J9 a "CPT code", labels I16.0 as "hypertension" instead of hypertensive urgency, and misspells MCC ("Major Complication or Compontent").
+- **Role confusion:** CASE-2026-005 calls Dr. Leonard Hask the "rendering provider"; he is the ordering physician.
+- **Unsupported conclusions:** CASE-2026-004 adds "indicating a high risk of upcoding" and "does not affect the specific claim in question". CASE-2026-006 says "the documentation meets policy for medical necessity" although no medical necessity review exists for this case.
+- **Omissions:** CASE-2026-006 Auditor Takeaway omits the concurrent inpatient stay conflict (the top risk factor). CASE-2026-005 omits the inconclusive status of line 2 (E2365). Doctor or facility names are sometimes left out of the overview (CASE-2026-003, 004, 006).
+- The deterministic Risk and Peer Context section is unaffected by any of the above and should be treated as the source of truth.
 
 #### E. Deterministic Sections
 Facts the model repeatedly got wrong are rendered by code, not the LLM, and are exact by construction:

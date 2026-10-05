@@ -388,12 +388,14 @@ def build_risk_peer_section(case: Dict[str, Any]) -> str:
             else:
                 lines.append(f"Payment action: {action}")
 
-    if has_peer:
-        peer_res = compute_peer_metrics(peer)
+    peer_input = peer or event.get("evidence_pointers", {}).get("peer_comparison") or case.get("evidence_pointers", {}).get("peer_comparison")
+    if peer_input:
+        peer_res = compute_peer_metrics(peer_input)
         if peer_res and peer_res.narrative:
             lines.append(peer_res.narrative)
 
-    return "\n".join(lines)
+    result = "\n".join(lines)
+    return re.sub(r"<\s*br\s*/?>", "\n", result, flags=re.IGNORECASE)
 
 
 

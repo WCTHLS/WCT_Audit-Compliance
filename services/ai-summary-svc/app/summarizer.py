@@ -6,6 +6,7 @@ summarizer_engine — so routes and the React frontend keep working.
 The internals are now one LLM call over flattened case JSON.
 """
 
+import json
 import logging
 import re
 from pathlib import Path
@@ -108,13 +109,15 @@ class SummarizeResponse(BaseModel):
 
 def normalise_markdown(text: str) -> str:
     """
-    Normalise markdown in LLM text:
+    Normalise markdown in LLM text and strip HTML line breaks:
+    - Converts '<br>', '<br/>', '<br />' to '\n'
     - Removes '**' and '__' wrappers
     - Removes leading '#' characters from lines
     - Keeps the text itself unchanged
     """
     if not text:
         return text
+    text = re.sub(r"<\s*br\s*/?>", "\n", text, flags=re.IGNORECASE)
     cleaned_lines = []
     for line in text.split("\n"):
         l = line.replace("**", "").replace("__", "")
@@ -167,6 +170,25 @@ class CaseSummarizer:
             "drg_validation": ("drg_validation", self.evidence_client.resolve_drg_validation),
         }
 
+        def _load_direct_json(ptr_val: Any) -> Optional[Dict[str, Any]]:
+            if not isinstance(ptr_val, str):
+                return None
+            candidates = [
+                Path(ptr_val),
+                Path("/app") / ptr_val,
+                Path("/app/mock-data") / ptr_val.replace("mock-data/", ""),
+                Path.cwd() / ptr_val,
+                Path(__file__).resolve().parents[3] / ptr_val,
+            ]
+            for cand in candidates:
+                if cand.exists() and cand.is_file():
+                    try:
+                        with open(cand, "r", encoding="utf-8") as f:
+                            return json.load(f)
+                    except Exception:
+                        pass
+            return None
+
         for key, (pointer_name, resolve) in resolvers.items():
             if pointer_name not in pointers:
                 continue
@@ -174,8 +196,12 @@ class CaseSummarizer:
                 model = resolve(pointers)
                 if model:
                     case[key] = model.model_dump(mode="json")
-            except EvidenceLookupError as e:
-                logger.warning("Could not resolve %s: %s", pointer_name, e)
+            except Exception as e:
+                logger.warning("Could not resolve %s via client (%s), trying direct file load...", pointer_name, e)
+                direct_data = _load_direct_json(pointers.get(pointer_name))
+                if direct_data:
+                    case[key] = direct_data
+                    logger.info("Successfully loaded %s from disk directly.", pointer_name)
 
         # peer_comparison is sometimes inlined on the pointer itself
         if "peer" not in case and isinstance(pointers.get("peer_comparison"), dict):

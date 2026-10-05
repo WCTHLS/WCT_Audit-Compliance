@@ -183,7 +183,7 @@ services:
       - SERVICE_PORT=8001
       - LLM_PROVIDER=${LLM_PROVIDER:-foundry}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:50514/v1}
+      - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:50327/v1}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_HOST=postgres

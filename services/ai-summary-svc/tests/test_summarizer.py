@@ -802,3 +802,33 @@ def test_llm_prompt_no_longer_contains_risk_peer_section_line():
     assert "Do not write a Risk and Peer Context section; it is added separately." in USER_PROMPT
 
 
+def test_peer_comparison_exact_matches_cases_001_002_003():
+    """Validates exact character-for-character matching for Cases 001, 002, and 003 peer lines."""
+    from app.peer_comparison import compute_peer_metrics
+
+    # CASE-2026-001
+    res1 = compute_peer_metrics({"fixture_ref": "mock-data/fwa-mock/case_001_peer_comparison.json"})
+    assert res1.narrative == "Peer comparison: Modifier 25 Attachment Rate 88.0% vs peer median 18.0% (4.89x median, 98.2 percentile, p95 58.0%, p99 85.0%, max 92.0%) across 184 Interventional Cardiology peers in US-Northeast."
+
+    # CASE-2026-002
+    res2 = compute_peer_metrics({"fixture_ref": "mock-data/fwa-mock/case_002_peer_comparison.json"})
+    assert res2.narrative == "Peer comparison: MS-DRG 469 (with MCC) Utilization Rate 38.5% vs peer median 9.2% (4.18x median, 99.1 percentile, p95 24.5%, p99 36.0%, max 39.2%) across 142 Orthopedic Surgery peers in US-Midwest."
+
+    # CASE-2026-003
+    res3 = compute_peer_metrics({"fixture_ref": "mock-data/fwa-mock/case_003_peer_comparison.json"})
+    assert res3.narrative == "Peer comparison: Lab Panel Component Unbundling Rate 41.0% vs peer median 3.0% (13.67x median, 99.5 percentile, p95 15.5%, p99 29.0%, max 44.0%) across 216 Internal Medicine peers in US-Southwest."
+
+
+def test_no_br_tags_in_summary_or_risk_peer_sections():
+    """Tests that normalise_markdown and build_risk_peer_section never contain <br> tags."""
+    from app.summarizer import normalise_markdown
+    from app.case_narrative import build_risk_peer_section
+
+    raw_html_text = "Case Overview:<br>Patient seen on 2026-08-14.<br />Billed 99215.<br/>"
+    clean_text = normalise_markdown(raw_html_text)
+    assert "<br>" not in clean_text
+    assert "<br/>" not in clean_text
+    assert "<br />" not in clean_text
+    assert "\n" in clean_text
+
+

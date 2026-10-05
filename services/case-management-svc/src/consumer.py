@@ -81,8 +81,12 @@ def process_case_created_event(
         )
         return existing_case
 
-    # 4. Calculate 72-Hour SLA Confirmation Clock (72h from live ingestion)
-    base_time = datetime.now(timezone.utc)
+    # 4. Calculate 72-Hour SLA Confirmation Clock (from event timestamp if available, else live ingestion)
+    base_time = event.timestamp if event.timestamp else datetime.now(timezone.utc)
+    if isinstance(base_time, str):
+        base_time = datetime.fromisoformat(base_time.replace("Z", "+00:00"))
+    if base_time.tzinfo is None:
+        base_time = base_time.replace(tzinfo=timezone.utc)
     sla_due_at = base_time + timedelta(hours=settings.DEFAULT_SLA_HOURS)
 
     # 5. Map to CaseCreate schema and persist
