@@ -183,7 +183,7 @@ services:
       - SERVICE_PORT=8001
       - LLM_PROVIDER=${LLM_PROVIDER:-foundry}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:50327/v1}
+      - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:59092/v1}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_HOST=postgres
@@ -229,6 +229,25 @@ services:
       timeout: 5s
       retries: 5
 
+  notification-svc:
+    build:
+      context: ..
+      dockerfile: services/notification-svc/Dockerfile
+    container_name: audit-notification-svc
+    environment:
+      - SERVICE_PORT=8003
+      - ACTIVE_PROVIDERS=console
+    volumes:
+      - ../services/notification-svc:/app/services/notification-svc
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   workflow-orchestrator:
     build:
       context: ..
@@ -257,6 +276,7 @@ services:
       - case-management-svc
       - ai-summary-svc
       - exclusion-screening-svc
+      - notification-svc
 
 volumes:
   postgres_data:

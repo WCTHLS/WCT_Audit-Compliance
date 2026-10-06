@@ -104,6 +104,40 @@ async def screen_exclusions_activity(
         is_excluded = True
         details = f"MATCH FOUND: Provider '{doctor_name}' is excluded under 1128(a)(1) - Conviction of program-related crimes."
 
+    # Update case record in case-management-svc even on fallback
+    try:
+        fallback_data = {
+            "case_id": case_id,
+            "overall_result": "MATCH" if is_excluded else "NO_MATCH",
+            "results": [
+                {
+                    "role": "ordering_provider",
+                    "name": doctor_name,
+                    "npi": doctor_npi,
+                    "result": "MATCH" if is_excluded else "NO_MATCH",
+                    "match_basis": "heuristic_fallback",
+                }
+            ],
+            "heuristic_fallback": True,
+        }
+        cms_url = f"{os.getenv('CASE_MANAGEMENT_URL', 'http://case-management-svc:8000')}/cases/{case_id}"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            patch_resp = await client.patch(
+                cms_url,
+                json={
+                    "exclusion_flag": is_excluded,
+                    "exclusion_result": fallback_data,
+                    "status": "READY_FOR_REVIEW",
+                },
+                headers=get_system_auth_headers(),
+            )
+            if patch_resp.status_code in (200, 204):
+                activity.logger.info(f"Updated case '{case_id}' in CMS via fallback (flag={is_excluded}, status=READY_FOR_REVIEW).")
+            else:
+                activity.logger.warning(f"Failed to patch case '{case_id}' in CMS during fallback (HTTP {patch_resp.status_code}): {patch_resp.text}")
+    except Exception as patch_err:
+        activity.logger.warning(f"Could not patch case in CMS during fallback: {patch_err}")
+
     return ScreeningResult(
         doctor_npi=doctor_npi,
         doctor_name=doctor_name,
