@@ -5,7 +5,7 @@ Handles dispatching and tracking notifications for SLA breach warnings, automate
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 * **Pluggable Provider Architecture**:
   * Decouples the API contract from underlying delivery mechanisms.
@@ -25,7 +25,7 @@ Handles dispatching and tracking notifications for SLA breach warnings, automate
 
 ---
 
-## 🚀 API Specification
+## API Specification
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -76,7 +76,7 @@ Handles dispatching and tracking notifications for SLA breach warnings, automate
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run unit and integration test suite:
 
