@@ -5,7 +5,7 @@ Screens healthcare providers, billing facilities, and associated entities agains
 
 ---
 
-## 🌟 Key Capabilities
+## Key Capabilities
 
 * **Multi-Entity Screening**:
   * Screens ordering/attending physicians by **NPI** and normalized name.
@@ -22,7 +22,7 @@ Screens healthcare providers, billing facilities, and associated entities agains
 
 ---
 
-## 🏗️ Architecture & Stack
+## Architecture & Stack
 
 * **Framework**: FastAPI + Pydantic v2 + Uvicorn
 * **Database**: PostgreSQL (`exclusion_records` table) + SQLAlchemy 2.0 ORM
@@ -31,7 +31,7 @@ Screens healthcare providers, billing facilities, and associated entities agains
 
 ---
 
-## 🚀 API Specification
+## API Specification
 
 ### 1. Health Probe (`GET /health`)
 Returns service health, database connectivity, and record counts per source.
@@ -115,7 +115,7 @@ Screens all provider, facility, and associated entities for a case.
 
 ---
 
-## 📂 Seed Data & Ingestion Jobs
+## Seed Data & Ingestion Jobs
 
 The service imports exclusion records using `jobs/load_exclusions.py`:
 
@@ -129,7 +129,7 @@ python jobs/load_exclusions.py --file seed/leie_synthetic_overlay.csv --source S
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run unit and integration test suite:
 
