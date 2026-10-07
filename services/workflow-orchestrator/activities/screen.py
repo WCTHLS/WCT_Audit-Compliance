@@ -8,9 +8,10 @@ from typing import Optional, Dict, Any
 import httpx
 from temporalio import activity
 
+from src.config import settings
 from activities.params import ScreeningResult, get_system_auth_headers
 
-EXCLUSION_SCREENING_URL = os.getenv("EXCLUSION_SCREENING_URL", "http://localhost:8002")
+EXCLUSION_SCREENING_URL = settings.EXCLUSION_SCREENING_URL
 
 
 @activity.defn(name="screen_exclusions_activity")
@@ -65,7 +66,7 @@ async def screen_exclusions_activity(
 
                 # Update case record in case-management-svc
                 try:
-                    cms_url = f"{os.getenv('CASE_MANAGEMENT_URL', 'http://case-management-svc:8000')}/cases/{case_id}"
+                    cms_url = f"{settings.CASE_MANAGEMENT_URL}/cases/{case_id}"
                     patch_resp = await client.patch(
                         cms_url,
                         json={
@@ -120,7 +121,7 @@ async def screen_exclusions_activity(
             ],
             "heuristic_fallback": True,
         }
-        cms_url = f"{os.getenv('CASE_MANAGEMENT_URL', 'http://case-management-svc:8000')}/cases/{case_id}"
+        cms_url = f"{settings.CASE_MANAGEMENT_URL}/cases/{case_id}"
         async with httpx.AsyncClient(timeout=10.0) as client:
             patch_resp = await client.patch(
                 cms_url,

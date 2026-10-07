@@ -15,6 +15,7 @@ from src.config import settings
 from workflows.case_audit_workflow import CaseAuditWorkflow
 from activities import (
     fetch_case_activity,
+    update_case_status_activity,
     summarize_case_activity,
     screen_exclusions_activity,
     notify_auditor_activity,
@@ -50,6 +51,7 @@ async def run_worker() -> None:
         workflows=[CaseAuditWorkflow],
         activities=[
             fetch_case_activity,
+            update_case_status_activity,
             summarize_case_activity,
             screen_exclusions_activity,
             notify_auditor_activity,

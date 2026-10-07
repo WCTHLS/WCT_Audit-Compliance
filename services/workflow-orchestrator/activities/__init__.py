@@ -9,7 +9,7 @@ from activities.params import (
     NotificationResult,
     FollowUpResult,
 )
-from activities.fetch_case import fetch_case_activity
+from activities.fetch_case import fetch_case_activity, update_case_status_activity
 from activities.summarize import summarize_case_activity
 from activities.screen import screen_exclusions_activity
 from activities.notify import notify_auditor_activity
@@ -22,6 +22,7 @@ __all__ = [
     "NotificationResult",
     "FollowUpResult",
     "fetch_case_activity",
+    "update_case_status_activity",
     "summarize_case_activity",
     "screen_exclusions_activity",
     "notify_auditor_activity",

@@ -22,7 +22,7 @@ class Settings:
 
     # Foundry Local Settings
     FOUNDRY_BASE_URL: str = os.getenv("FOUNDRY_BASE_URL", "http://host.docker.internal:59092/v1")
-    FOUNDRY_MODEL: str = os.getenv("FOUNDRY_MODEL", "qwen2.5-7b-instruct-openvino-gpu")
+    FOUNDRY_MODEL: str = os.getenv("FOUNDRY_MODEL", "qwen2.5-7b-instruct-openvino-npu")
 
     # Context & Token Limits
     MODEL_CONTEXT_LIMIT: int = int(os.getenv("MODEL_CONTEXT_LIMIT", "32768"))

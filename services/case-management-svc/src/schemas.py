@@ -22,7 +22,7 @@ class CaseBase(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     case_id: str = Field(..., min_length=1, description="Unique case identifier (e.g. CASE-2026-001)")
-    status: CaseStatusEnum = Field(default=CaseStatusEnum.NEW, description="Case lifecycle status")
+    status: str = Field(default="NEW", description="Case lifecycle status")
     claim_ref: str = Field(..., min_length=1, description="Claim reference ID (e.g. CLM-2026-8841)")
     risk_score: int = Field(..., ge=100, le=1000, description="FWA ML risk score (100-1000)")
     flagged_reason: str = Field(..., min_length=1, description="Detailed reason for audit flag")
@@ -78,7 +78,7 @@ class CaseUpdate(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
-    status: Optional[CaseStatusEnum] = Field(None, description="Updated case lifecycle status")
+    status: Optional[str] = Field(None, description="Updated case lifecycle status")
     assigned_auditor: Optional[str] = Field(None, description="Assigned human auditor email/ID")
     sla_breached: Optional[bool] = Field(None, description="Flag indicating SLA deadline breach")
     sla_due_at: Optional[datetime] = Field(None, description="Adjusted SLA deadline timestamp")

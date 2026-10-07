@@ -23,6 +23,7 @@ with workflow.unsafe.imports_passed_through():
         ScreeningResult,
         NotificationResult,
         fetch_case_activity,
+        update_case_status_activity,
         summarize_case_activity,
         screen_exclusions_activity,
         notify_auditor_activity,
@@ -56,7 +57,8 @@ class CaseAuditWorkflow:
         self.clinical_summary: Optional[str] = None
         self.peer_comparison_narrative: Optional[str] = None
         self.is_excluded: bool = False
-        self.sla_timeout_hours: int = 72
+        self.assigned_auditor: Optional[str] = None
+        self.sla_timeout_hours: float = 72.0
 
     @workflow.signal(name="submit_decision")
     def submit_decision(self, decision_data: DecisionSignalInput) -> None:
@@ -95,6 +97,9 @@ class CaseAuditWorkflow:
         self.case_id = input_data.case_id
         self.claim_ref = input_data.claim_ref
         self.current_status = "ENRICHING"
+        self.assigned_auditor = getattr(input_data, "assigned_auditor", None) or "auditor-queue@wct-health.com"
+        if getattr(input_data, "sla_timeout_hours", None):
+            self.sla_timeout_hours = input_data.sla_timeout_hours
 
         workflow.logger.info(
             f"Starting CaseAuditWorkflow lifecycle for case_id='{self.case_id}', "
@@ -159,22 +164,23 @@ class CaseAuditWorkflow:
         self.is_excluded = screen_res.is_excluded
 
         # -------------------------------------------------------------
-        # Phase 4: Notify Assigned Auditor
+        # Phase 4: Notify Assigned Auditor / Queue
         # -------------------------------------------------------------
         await workflow.execute_activity(
             notify_auditor_activity,
             args=[
-                "auditor-queue@wct-health.com",
-                "CASE_READY_FOR_REVIEW",
+                self.assigned_auditor or "auditor-queue@wct-health.com",
+                "CASE_ASSIGNMENT",
                 self.case_id,
                 f"Case {self.case_id} is enriched and ready for review. 72-hour SLA active.",
+                {"risk_score": case_details.risk_score, "claim_ref": self.claim_ref},
             ],
             start_to_close_timeout=timedelta(seconds=5),
             retry_policy=standard_retry,
         )
 
         # -------------------------------------------------------------
-        # Phase 5: 72-Hour Human-in-the-Loop Review Window (SLA Timer)
+        # Phase 5: 72-Hour Review Window with Early SLA Warning Checkpoint
         # -------------------------------------------------------------
         self.current_status = "READY_FOR_REVIEW"
         workflow.logger.info(
@@ -182,15 +188,50 @@ class CaseAuditWorkflow:
             f"Entering {self.sla_timeout_hours}-hour SLA timer..."
         )
 
-        # Wait until auditor submits a decision signal OR 72h timer expires
+        # Proportional or fixed warning window: 6 hours before expiry for production 72h SLA,
+        # or 75% elapsed for short development/test timeouts.
+        if self.sla_timeout_hours > 12:
+            warning_hours = float(self.sla_timeout_hours - 6)
+            remaining_hours = 6.0
+        else:
+            warning_hours = float(self.sla_timeout_hours * 0.75)
+            remaining_hours = float(self.sla_timeout_hours * 0.25)
+
+        # Checkpoint A: Wait until early warning threshold
         try:
             await workflow.wait_condition(
                 lambda: self.decision is not None,
-                timeout=timedelta(hours=self.sla_timeout_hours),
+                timeout=timedelta(hours=warning_hours),
             )
         except Exception:
-            # Catch timeout or interruption
             pass
+
+        # Checkpoint B: If still no decision at warning threshold, fire SLA_BREACH_WARNING
+        if self.decision is None:
+            workflow.logger.warning(
+                f"SLA WARNING: Case '{self.case_id}' has {remaining_hours:.1f} hours remaining before deadline."
+            )
+            await workflow.execute_activity(
+                notify_auditor_activity,
+                args=[
+                    self.assigned_auditor or "auditor-queue@wct-health.com",
+                    "SLA_BREACH_WARNING",
+                    self.case_id,
+                    f"Warning: Case {self.case_id} has {remaining_hours:.1f} hours remaining before the 72-hour SLA expires.",
+                    {"hours_remaining": remaining_hours, "risk_score": case_details.risk_score},
+                ],
+                start_to_close_timeout=timedelta(seconds=5),
+                retry_policy=standard_retry,
+            )
+
+            # Wait remaining time until final 72h expiration
+            try:
+                await workflow.wait_condition(
+                    lambda: self.decision is not None,
+                    timeout=timedelta(hours=remaining_hours),
+                )
+            except Exception:
+                pass
 
         # -------------------------------------------------------------
         # Phase 6: Evaluate Decision vs SLA Breach
@@ -203,26 +244,78 @@ class CaseAuditWorkflow:
                 f"SLA BREACH! 72-hour review window expired for case '{self.case_id}'. Escalating..."
             )
 
-            # Trigger Escalation Alert Activity
+            # 1. Update status in Case Management Service database
+            await workflow.execute_activity(
+                update_case_status_activity,
+                args=[self.case_id, "SLA_BREACHED"],
+                start_to_close_timeout=timedelta(seconds=5),
+                retry_policy=standard_retry,
+            )
+
+            # 2. Trigger SLA_BREACH Alert to Head Auditor
             await workflow.execute_activity(
                 notify_auditor_activity,
                 args=[
-                    "lead-compliance-officer@wct-health.com",
-                    "SLA_BREACH_ESCALATION",
+                    "lead-auditor@wct-health.com",
+                    "SLA_BREACH",
                     self.case_id,
-                    f"URGENT ESCALATION: 72h SLA breached for Case {self.case_id} (Claim {self.claim_ref})! "
-                    f"Risk Score: {case_details.risk_score}.",
+                    f"URGENT: 72h SLA Breached for Case {self.case_id} (Claim {self.claim_ref})! "
+                    f"Risk Score: {case_details.risk_score}. Immediate supervisor intervention required.",
+                    {"sla_breached": True, "risk_score": case_details.risk_score},
                 ],
                 start_to_close_timeout=timedelta(seconds=5),
                 retry_policy=standard_retry,
             )
-            completion_message = "72h SLA review window expired. Escalation alert dispatched."
+            completion_message = "72h SLA review window expired. Case marked SLA_BREACHED and alert dispatched to Head Auditor."
+        elif self.decision.upper() == "ESCALATE":
+            # Auditor explicitly requested supervisor escalation!
+            self.current_status = "ESCALATED"
+            workflow.logger.warning(
+                f"AUDITOR ESCALATION! Case '{self.case_id}' escalated by '{self.decided_by}'. "
+                f"Rationale: {self.decision_rationale}"
+            )
+
+            # 1. Update status in Case Management Service database
+            await workflow.execute_activity(
+                update_case_status_activity,
+                args=[self.case_id, "ESCALATED"],
+                start_to_close_timeout=timedelta(seconds=5),
+                retry_policy=standard_retry,
+            )
+
+            # 2. Trigger AUDITOR_ESCALATION Alert to Head Auditor
+            await workflow.execute_activity(
+                notify_auditor_activity,
+                args=[
+                    "lead-auditor@wct-health.com",
+                    "AUDITOR_ESCALATION",
+                    self.case_id,
+                    f"Auditor Escalation for Case {self.case_id} (Claim {self.claim_ref}) by {self.decided_by}: "
+                    f"{self.decision_rationale or 'Case escalated for supervisor review.'}",
+                    {
+                        "escalated_by": self.decided_by,
+                        "rationale": self.decision_rationale,
+                        "risk_score": case_details.risk_score,
+                    },
+                ],
+                start_to_close_timeout=timedelta(seconds=5),
+                retry_policy=standard_retry,
+            )
+            completion_message = f"Case escalated to Head Auditor by {self.decided_by}."
         else:
             # Auditor successfully recorded decision within SLA window
             self.current_status = "DECISION_RECORDED"
             workflow.logger.info(
                 f"Decision '{self.decision}' successfully recorded for case '{self.case_id}' "
                 f"by '{self.decided_by}' within SLA window."
+            )
+
+            # Update status in Case Management Service database
+            await workflow.execute_activity(
+                update_case_status_activity,
+                args=[self.case_id, "DECISION_RECORDED"],
+                start_to_close_timeout=timedelta(seconds=5),
+                retry_policy=standard_retry,
             )
             completion_message = f"Decision '{self.decision}' recorded successfully."
 

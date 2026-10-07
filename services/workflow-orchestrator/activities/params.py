@@ -22,7 +22,7 @@ def get_system_auth_headers() -> Dict[str, str]:
         "role": "AUDITOR",
         "name": "System Orchestrator",
         "email": "orchestrator@wct-health.com",
-        "iat": int(time.time()),
+        "iat": int(time.time() - 30),
         "exp": int(time.time() + 86400 * 365),
     }
 

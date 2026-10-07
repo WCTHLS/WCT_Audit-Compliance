@@ -85,3 +85,27 @@ async def fetch_case_activity(case_id: str) -> FetchCaseResult:
         found=False,
         error="Case not found in API or mock fixtures.",
     )
+
+
+@activity.defn(name="update_case_status_activity")
+async def update_case_status_activity(case_id: str, new_status: str) -> bool:
+    """Updates case status in Case Management Service (PATCH /cases/{id})."""
+    url = f"{settings.CASE_MANAGEMENT_URL}/cases/{case_id}"
+    activity.logger.info(f"Updating case '{case_id}' status to '{new_status}' via '{url}'...")
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.patch(
+                url,
+                json={"status": new_status},
+                headers=get_system_auth_headers(),
+            )
+            if resp.status_code in (200, 204):
+                activity.logger.info(f"Successfully updated case '{case_id}' to status '{new_status}'.")
+                return True
+            activity.logger.warning(
+                f"Failed to update case '{case_id}' status in CMS (HTTP {resp.status_code}): {resp.text}"
+            )
+    except Exception as exc:
+        activity.logger.warning(f"Could not update case '{case_id}' status in CMS: {exc}")
+    return False
+

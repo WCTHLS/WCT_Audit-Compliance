@@ -4,6 +4,7 @@ Interacts with Foundry Local and Ollama models with OpenAI-compatible API.
 Raises LLMClientError on any failure without silent fallbacks.
 """
 
+import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 import httpx
@@ -127,28 +128,37 @@ class LLMClient:
                 "temperature": temperature,
                 "max_tokens": max_tokens,
             }
-            try:
-                client_timeout = httpx.Timeout(self.timeout, connect=3.0)
-                async with httpx.AsyncClient(timeout=client_timeout) as client:
-                    resp = await client.post(endpoint, json=payload)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        usage = data.get("usage") or {}
-                        self.last_prompt_tokens = usage.get("prompt_tokens")
-                        choices = data.get("choices", [])
-                        if choices and "message" in choices[0]:
-                            self.last_finish_reason = choices[0].get("finish_reason")
-                            content = choices[0]["message"].get("content", "").strip()
-                            if content:
-                                logger.info(
-                                    f"LLM completion received via {self.provider} ({len(content)} chars, prompt_tokens={self.last_prompt_tokens})."
-                                )
-                                return content
-                        raise LLMClientError(f"Foundry returned 200 but response content was empty: {data}")
-                    else:
-                        raise LLMClientError(f"Foundry returned HTTP {resp.status_code}: {resp.text}")
-            except httpx.RequestError as req_err:
-                raise LLMClientError(f"Connection to Foundry at '{self.base_url}' failed: {req_err}") from req_err
+            client_timeout = httpx.Timeout(self.timeout, connect=5.0)
+            max_busy_retries = 5
+            for attempt in range(max_busy_retries):
+                try:
+                    async with httpx.AsyncClient(timeout=client_timeout) as client:
+                        resp = await client.post(endpoint, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            usage = data.get("usage") or {}
+                            self.last_prompt_tokens = usage.get("prompt_tokens")
+                            choices = data.get("choices", [])
+                            if choices and "message" in choices[0]:
+                                self.last_finish_reason = choices[0].get("finish_reason")
+                                content = choices[0]["message"].get("content", "").strip()
+                                if content:
+                                    logger.info(
+                                        f"LLM completion received via {self.provider} ({len(content)} chars, prompt_tokens={self.last_prompt_tokens})."
+                                    )
+                                    return content
+                            raise LLMClientError(f"Foundry returned 200 but response content was empty: {data}")
+                        elif resp.status_code == 500 and "busy" in resp.text.lower() and attempt < max_busy_retries - 1:
+                            logger.warning(f"Foundry infer request is busy, waiting 3s before retry (attempt {attempt + 1}/{max_busy_retries})...")
+                            await asyncio.sleep(3.0)
+                            continue
+                        else:
+                            raise LLMClientError(f"Foundry returned HTTP {resp.status_code}: {resp.text}")
+                except httpx.RequestError as req_err:
+                    if attempt < max_busy_retries - 1:
+                        await asyncio.sleep(2.0)
+                        continue
+                    raise LLMClientError(f"Connection to Foundry at '{self.base_url}' failed: {req_err}") from req_err
 
         # 2. Ollama native /api/chat
         native_endpoint = f"{self.base_url}/api/chat"

@@ -184,6 +184,7 @@ services:
       - LLM_PROVIDER=${LLM_PROVIDER:-foundry}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - FOUNDRY_BASE_URL=${FOUNDRY_BASE_URL:-http://host.docker.internal:59092/v1}
+      - FOUNDRY_MODEL=${FOUNDRY_MODEL:-qwen2.5-7b-instruct-openvino-npu}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_HOST=postgres

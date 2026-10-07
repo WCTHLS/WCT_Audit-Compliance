@@ -26,6 +26,8 @@ class CaseWorkflowInput:
     total_claim_amount: float = 0.0
     evidence_pointers: Optional[Dict[str, Any]] = field(default_factory=dict)
     is_synthetic: bool = True
+    assigned_auditor: Optional[str] = None
+    sla_timeout_hours: Optional[float] = None
 
 
 @dataclass
