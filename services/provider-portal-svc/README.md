@@ -7,7 +7,7 @@
 
 ---
 
-## 📋 Features
+## Features
 
 1. **Auditor Document Requests (`POST /document-requests`)**:
    * Auditor submits a request for clinical documentation on a specific case.
@@ -30,7 +30,7 @@
 
 ---
 
-## 🔄 Lifecycle States
+## Lifecycle States
 
 ```
 [Auditor Creates Request]
@@ -49,7 +49,7 @@
 
 ---
 
-## 🚀 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -66,7 +66,7 @@
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run automated tests via `pytest`:
 
