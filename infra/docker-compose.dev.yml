@@ -249,6 +249,28 @@ services:
       timeout: 5s
       retries: 5
 
+  provider-portal-svc:
+    build:
+      context: ..
+      dockerfile: services/provider-portal-svc/Dockerfile
+    container_name: audit-provider-portal-svc
+    environment:
+      - SERVICE_PORT=8005
+      - NOTIFICATION_URL=http://notification-svc:8003
+      - CASE_MANAGEMENT_URL=http://case-management-svc:8000
+    volumes:
+      - ../services/provider-portal-svc:/app/services/provider-portal-svc
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8005", "--reload"]
+    ports:
+      - "8005:8005"
+    depends_on:
+      - notification-svc
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   workflow-orchestrator:
     build:
       context: ..
@@ -264,6 +286,7 @@ services:
       - EXCLUSION_SCREENING_URL=http://exclusion-screening-svc:8002
       - NOTIFICATION_URL=http://notification-svc:8003
       - AUDIT_TRAIL_URL=http://audit-trail-svc:8004
+      - PROVIDER_PORTAL_URL=http://provider-portal-svc:8005
       - SLA_TIMEOUT_HOURS=72
     volumes:
       - ../services/workflow-orchestrator/src:/app/services/workflow-orchestrator/src
@@ -278,6 +301,7 @@ services:
       - ai-summary-svc
       - exclusion-screening-svc
       - notification-svc
+      - provider-portal-svc
 
 volumes:
   postgres_data:

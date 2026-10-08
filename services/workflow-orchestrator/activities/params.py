@@ -107,3 +107,5 @@ class FollowUpResult:
     sent: bool = True
     follow_up_id: str = "FOLLOWUP-MOCK-001"
     message: str = "Automated document request reminder sent."
+    pending_requests_count: int = 0
+    reminded_request_ids: List[str] = field(default_factory=list)

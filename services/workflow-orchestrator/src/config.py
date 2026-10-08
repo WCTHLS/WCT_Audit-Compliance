@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     EXCLUSION_SCREENING_URL: str = "http://localhost:8002"
     NOTIFICATION_URL: str = "http://localhost:8003"
     AUDIT_TRAIL_URL: str = "http://localhost:8004"
+    PROVIDER_PORTAL_URL: str = "http://localhost:8005"
 
     # SLA and Timeout Settings
     SLA_TIMEOUT_HOURS: int = 72

@@ -271,3 +271,20 @@ async def test_workflow_auditor_escalation_signal():
         assert result.decided_by == "senior-auditor@wct-health.com"
         assert result.sla_breached is False
         assert "escalated to Head Auditor" in result.message
+
+
+@pytest.mark.anyio
+async def test_send_follow_up_activity_dispatch():
+    """Verify send_follow_up_activity checks provider portal and returns dispatch result."""
+    from activities.params import FollowUpResult
+    res: FollowUpResult = await send_follow_up_activity(
+        case_id="CASE-2026-001",
+        provider_npi="1093847562",
+        reminder_number=1,
+    )
+    assert res.sent is True
+    assert res.case_id == "CASE-2026-001"
+    assert res.provider_npi == "1093847562"
+    assert res.reminder_number == 1
+    assert "Reminder #1" in res.message
+
