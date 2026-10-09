@@ -83,7 +83,7 @@ async def send_follow_up_activity(
     recipient_email = f"provider-{provider_npi}@hospital-network.org"
     notif_payload = {
         "recipient": recipient_email,
-        "notification_type": "PROVIDER_REMINDER",
+        "notification_type": "DOCUMENT_REQUEST_REMINDER",
         "channel": "EMAIL",
         "priority": "HIGH" if reminder_number > 1 else "NORMAL",
         "subject": f"Reminder #{reminder_number}: Pending Medical Record Request for Case {case_id}",

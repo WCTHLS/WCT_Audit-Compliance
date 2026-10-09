@@ -85,6 +85,7 @@ class CaseUpdate(BaseModel):
     sla_type: Optional[SlaTypeEnum] = Field(None, description="Active SLA timer type")
     exclusion_flag: Optional[bool] = Field(None, description="Updated exclusion flag")
     exclusion_result: Optional[Dict[str, Any]] = Field(None, description="Updated exclusion screening result payload")
+    evidence_pointers: Optional[Dict[str, Any]] = Field(None, description="Updated clinical and document evidence pointers")
 
     # Auditor Decision Recording
     decision: Optional[AuditDecisionEnum] = Field(None, description="Auditor decision: UPHOLD, REVERSE, REQUEST_INFO")

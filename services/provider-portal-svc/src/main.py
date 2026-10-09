@@ -3,11 +3,18 @@ FastAPI application for Provider Portal Service.
 Provides endpoints for auditor document requests, read receipts, and provider responses.
 """
 
+import base64
 from contextlib import asynccontextmanager
+import hashlib
+import hmac
+import json
 import logging
+import os
+import time
 from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+import httpx
 
 from src.config import settings
 from src.repository import repository
@@ -22,6 +29,35 @@ from src.schemas import (
 
 logger = logging.getLogger("provider_portal")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
+
+def get_internal_auth_headers() -> Dict[str, str]:
+    """Generates standard JWT Bearer headers for inter-service communication."""
+    secret = settings.JWT_SECRET_KEY
+    header = {"alg": "HS256", "typ": "JWT"}
+    payload = {
+        "sub": "provider-portal-svc",
+        "role": "AUDITOR",
+        "name": "Provider Portal Service",
+        "email": "provider-portal@wct-health.com",
+        "iat": int(time.time() - 30),
+        "exp": int(time.time() + 86400),
+    }
+
+    def b64url(data: bytes) -> str:
+        return base64.urlsafe_b64encode(data).decode("utf-8").rstrip("=")
+
+    hdr_b64 = b64url(json.dumps(header).encode("utf-8"))
+    pay_b64 = b64url(json.dumps(payload).encode("utf-8"))
+    signing_input = f"{hdr_b64}.{pay_b64}".encode("utf-8")
+    sig = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
+    sig_b64 = b64url(sig)
+    token = f"{hdr_b64}.{pay_b64}.{sig_b64}"
+    return {
+        "Authorization": f"Bearer {token}",
+        "X-Internal-Service": "provider-portal-svc",
+    }
+
 
 
 @asynccontextmanager
@@ -215,6 +251,49 @@ async def respond_to_document_request(
         f"Provider response submitted for request '{id}' by '{payload.responded_by}'. "
         f"Attachments: {len(payload.attachments)}"
     )
+
+    # Propagate provider response attachments to case-management-svc as evidence pointers
+    case_mgmt_url = getattr(settings, "CASE_MANAGEMENT_URL", "http://localhost:8000").rstrip("/")
+    try:
+        auth_hdrs = get_internal_auth_headers()
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            case_resp = await client.get(f"{case_mgmt_url}/cases/{record.case_id}", headers=auth_hdrs)
+            if case_resp.status_code == 200:
+                case_data = case_resp.json()
+                existing_pointers = dict(case_data.get("evidence_pointers") or {})
+                submitted_docs = existing_pointers.get("provider_submitted_documents", [])
+                for att in payload.attachments:
+                    submitted_docs.append({
+                        "filename": att.filename,
+                        "file_type": att.file_type,
+                        "file_size_bytes": att.file_size_bytes,
+                        "storage_uri": att.storage_uri,
+                        "request_id": id,
+                        "uploaded_at": att.uploaded_at.isoformat() if att.uploaded_at else None,
+                    })
+                existing_pointers["provider_submitted_documents"] = submitted_docs
+                existing_pointers["last_provider_response"] = {
+                    "request_id": id,
+                    "responded_by": payload.responded_by,
+                    "response_notes": payload.response_notes,
+                }
+                patch_payload = {
+                    "status": "DOCS_SUBMITTED",
+                    "evidence_pointers": existing_pointers,
+                }
+                patch_resp = await client.patch(
+                    f"{case_mgmt_url}/cases/{record.case_id}",
+                    json=patch_payload,
+                    headers=auth_hdrs,
+                )
+                if patch_resp.status_code == 200:
+                    logger.info(f"Updated case '{record.case_id}' with provider response attachments.")
+    except Exception as exc:
+        logger.warning(
+            f"Could not sync provider response to Case Management Service for case '{record.case_id}': {exc}. "
+            f"Portal response remains recorded."
+        )
+
     return updated
 
 
